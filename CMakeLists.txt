@@ -66,7 +66,7 @@ endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/>")
 target_include_directories(${PROJECT_NAME} PUBLIC "$<INSTALL_INTERFACE:include>")
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/doc/>")
+target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/generated_doc/>")
 
 target_link_libraries(${PROJECT_NAME} PRIVATE "${PYTHON_LIBRARY}" )
 target_include_directories(${PROJECT_NAME} PRIVATE "${PYTHON_INCLUDE_DIR}")
@@ -92,3 +92,26 @@ sofa_create_package(${PROJECT_NAME} ${PROJECT_VERSION} SofaPython3 "SofaPython3"
 
 ### Python binding
 add_subdirectory(bindings)
+
+#add_subdirectory(doc)
+option(SofaPython3_GENERATE_DOC "Generate binding documentation" OFF)
+if(SofaPython3_GENERATE_DOC)
+    file(GLOB binding_headers "${CMAKE_CURRENT_SOURCE_DIR}/bindings/Sofa/src/SofaPython3/Sofa/Simulation/Binding*.h")
+    foreach(header IN ITEMS ${binding_headers})
+        get_filename_component(bname ${header} NAME_WE)
+        string(REGEX REPLACE ".+_" "" bname ${bname})
+        set(outname "${bname}_doc.h")
+        set(binded_file ${CMAKE_SOURCE_DIR}/SofaKernel/framework/sofa/simulation/${bname}.h)
+        set(include_dirs -I/usr/lib64/llvm5.0/lib/clang/5.0.1/include -I${CMAKE_BINARY_DIR}/include -I${CMAKE_SOURCE_DIR}/SofaKernel/framework -I${CMAKE_CURRENT_SOURCE_DIR}/binding -I/usr/include/python3.7m)
+        execute_process(
+            COMMAND "${PYTHON_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/doc/mkdoc.py" ${include_dirs} "${binded_file}"
+            OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/generated_doc/${outname}"
+            RESULT_VARIABLE retcode
+            ERROR_VARIABLE err)
+        message("Return code ${retcode} : ${err}")
+    endforeach()
+else()
+    # Copy already generated doc
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/doc/generated_doc DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+endif()
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/generated_doc DESTINATION modules/SofaPython3 COMPONENT headers)
