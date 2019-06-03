@@ -95,14 +95,23 @@ add_subdirectory(bindings)
 
 #add_subdirectory(doc)
 option(SofaPython3_GENERATE_DOC "Generate binding documentation" OFF)
+set(include_dirs "-I/usr/lib64/llvm5.0/lib/clang/5.0.1/include"
+    "-I${CMAKE_BINARY_DIR}/include"
+    "-I${CMAKE_SOURCE_DIR}/SofaKernel/framework"
+    "-I${CMAKE_CURRENT_SOURCE_DIR}/binding"
+    "-I${PYTHON_INCLUDE_DIRS}")
+
 if(SofaPython3_GENERATE_DOC)
     file(GLOB binding_headers "${CMAKE_CURRENT_SOURCE_DIR}/bindings/Sofa/src/SofaPython3/Sofa/Simulation/Binding*.h")
+    #file(GLOB_RECURSE binding_headers "${CMAKE_CURRENT_SOURCE_DIR}/bindings/Binding*.h")
+    #message(FATAL_ERROR  MEOW ${binding_headers})
+    # -> We get expected result
+
     foreach(header IN ITEMS ${binding_headers})
         get_filename_component(bname ${header} NAME_WE)
         string(REGEX REPLACE ".+_" "" bname ${bname})
         set(outname "${bname}_doc.h")
         set(binded_file ${CMAKE_SOURCE_DIR}/SofaKernel/framework/sofa/simulation/${bname}.h)
-        set(include_dirs -I/usr/lib64/llvm5.0/lib/clang/5.0.1/include -I${CMAKE_BINARY_DIR}/include -I${CMAKE_SOURCE_DIR}/SofaKernel/framework -I${CMAKE_CURRENT_SOURCE_DIR}/binding -I/usr/include/python3.7m)
         execute_process(
             COMMAND "${PYTHON_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/doc/mkdoc.py" ${include_dirs} "${binded_file}"
             OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/generated_doc/${outname}"
