@@ -26,7 +26,7 @@ def createScene(root):
 	root.addObject("CGLinearSolver")
 	root.addObject('LCPConstraintSolver')
 	root.addObject("FreeMotionAnimationLoop")
-	root.addObject('EulerImplicitSolver', name='odesolver', firstOrder="0", rayleighMass="0.1", rayleighStiffness="0.1")
+	root.addObject('EulerImplicitSolver', name='odesolver', firstOrder=0, rayleighMass=0.1, rayleighStiffness=0.1)
 
 
 	Cube = root.addChild("Cube")
