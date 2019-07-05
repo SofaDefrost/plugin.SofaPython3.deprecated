@@ -33,6 +33,12 @@ using sofapython3::SceneLoaderPY3;
 #include <SofaPython3/Sofa/Core/Binding_Node.h>
 #include <SofaPython3/Sofa/Core/Binding_Simulation.h>
 
+#include "Timer/Submodule_Timer.h"
+#include "Input/Submodule_Input.h"
+
+namespace sofapython3
+{
+
 class SofaInitializer
 {
 public:
@@ -56,6 +62,23 @@ static SofaInitializer s;
 
 /// The first parameter must be named the same as the module file to load.
 PYBIND11_MODULE(SofaRuntime, m) {
+
+    m.doc() = R"doc(
+              SofaRuntime
+              -----------------------
+
+              Example of use:
+                .. code-block:: python
+
+                   import SofaRuntime
+                    SofaRuntime.importPlugin("MechanicalObject"")
+
+                .. automethod::
+                  :toctree: _autosummary
+
+                  SofaRuntime.importPlugin
+             )doc";
+
     // Add the plugin directory to PluginRepository
     const std::string& pluginDir = Utils::getExecutableDirectory();
     PluginRepository.addFirstPath(pluginDir);
@@ -79,5 +102,8 @@ PYBIND11_MODULE(SofaRuntime, m) {
         return simpleapi::importPlugin(name);
     });
 
+    addSubmoduleInput(m);
+    addSubmoduleTimer(m);
+}
 
 }

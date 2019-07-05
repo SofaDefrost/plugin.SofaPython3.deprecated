@@ -31,6 +31,8 @@ using sofa::core::objectmodel::BaseObjectDescription;
 #include <queue>
 #include <sofa/core/objectmodel/Link.h>
 
+#include "Binding_Node_doc.h"
+
 namespace sofapython3
 {
 
@@ -230,16 +232,7 @@ void moduleAddNode(py::module &m) {
 
     py::class_<Node, sofa::core::objectmodel::BaseNode,
             sofa::core::objectmodel::Context, Node::SPtr>
-            p(m, "Node",
-              R"(
-              Node of the scene graph
-              ---------------
-
-              .. autoclass:: Sofa.Node
-              :members:
-              :undoc-members:
-
-              )");
+            p(m, "Node", sofapython3::doc::sofa::core::Node::docstring);
 
     /// Constructors:
     p.def(py::init([](){ return sofa::core::objectmodel::New<sofa::simulation::graph::DAGNode>("unnamed"); }),
@@ -254,13 +247,14 @@ void moduleAddNode(py::module &m) {
     /// Method: addObjects
     /// Only addObject is needed now, the createObject is deprecated and will prints
     /// a warning for old scenes.
-    p.def("addObject", &Node_addObject);
+    p.def("addObject", &Node_addObject, "Hello add object ...");
     p.def("addObject", [](Node& self, BaseObject* object) -> py::object
     {
         if(self.addObject(object))
             return PythonDownCast::toPython(object);
         return py::none();
     });
+
     p.def("createObject",
           [](Node* self, const std::string& type, const py::kwargs& kwargs) {
         msg_deprecated(self) << "The Node.createObject method is deprecated since sofa 19.06."
@@ -394,21 +388,5 @@ p.def("__getitem__", [](Node& self, const std::string& s) -> py::object
 
 });
 
-
-p.def("__old_getChildren", [](Node& node)
-{
-    py::list l;
-    for(auto& child : node.child)
-        l.append( py::cast(child) );
-    return l;
-});
-
-p.def("__old_getChild", [](Node& node, unsigned int t)
-{
-    if(t >= node.child.size())
-        throw py::index_error("Index trop grand");
-    return py::cast(node.child[t]);
-});
 }
-
 } /// namespace sofapython3

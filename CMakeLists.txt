@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.11)
 project(SofaPython3 VERSION 1.0)
 
 # Detect if SofaPython3 is a subproject of another project (eg. when compiled within Sofa)
@@ -45,7 +45,7 @@ if (NOT SP3_COMPILED_AS_SUBPROJECT)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 endif()
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -99,6 +99,11 @@ endif(SP3_BUILD_TEST)
     
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES} ${EXTRA_FILES})
 set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-DSOFA_BUILD_SOFAPYTHON3")
+
+if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+    # Sized deallocaion is not enabled by default under clang after c++14
+    set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-fsized-deallocation")
+endif ()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC SofaCore SofaSimulationCore SofaSimulationGraph SofaComponentGeneral)
 
