@@ -89,11 +89,10 @@ static auto getLinks =
 
 static auto addData =
         R"(
-        Create a data field, then adds it to the base.
+        Creates a data field, then adds it to the base.
         Note that this method should only be called if the field was not initialized with the initData method
-        :param self: the base itself
         :param name: the name of the data to be added
-        :param value: the value from which the data can be created
+        :param value: the value from which the data can be initialized
         :param help: help message that describes the data to be created
         :param group: the group the data belongs to
         :param type: the type of the data
@@ -109,8 +108,7 @@ static auto addDataInitialized =
         R"(
         Add a data field.
         Note that this method should only be called if the field was not initialized with the initData method
-        :param self: the base itself
-        :param d: the data to be added
+        :param d: the data to be added to self
         :type self: Base*
         :type d: object
         )";

@@ -388,11 +388,25 @@ py::object toPython(BaseData* d, bool writeable)
         }
         return getPythonArrayFor(d);
     }
-
-    std::cout << nfo.name() << " is not a container with a simple layout" << std::endl;
     /// If this is not the case we return the converted datas (copy)
     return convertToPython(d);
 }
+
+py::object toPython(const BaseData* d)
+{
+    const AbstractTypeInfo& nfo{ *(d->getValueTypeInfo()) };
+    /// In case the data is a container with a simple layout
+    /// we can expose the field as a numpy.array (no copy)
+    if(nfo.Container() && nfo.SimpleLayout())
+    {
+        getPythonArrayFor(const_cast<BaseData*>(d));
+        return getBindingDataFactoryInstance()->createObject("DataContainer", const_cast<BaseData*>(d));
+    }
+    /// If this is not the case we return the converted datas (copy)
+    return convertToPython(const_cast<BaseData*>(d));
+}
+
+
 
 void copyFromListScalar(BaseData& d, const AbstractTypeInfo& nfo, const py::list& l)
 {
@@ -406,7 +420,7 @@ void copyFromListScalar(BaseData& d, const AbstractTypeInfo& nfo, const py::list
     {
         void* ptr = d.beginEditVoidPtr();
 
-        if( (size_t)dstinfo.shape[0] != l.size())
+        if( size_t(dstinfo.shape[0]) != l.size())
             nfo.setSize(ptr, l.size());
         for(size_t i=0;i<l.size();++i)
         {
@@ -416,7 +430,7 @@ void copyFromListScalar(BaseData& d, const AbstractTypeInfo& nfo, const py::list
         return;
     }
     void* ptr = d.beginEditVoidPtr();
-    if( (size_t)dstinfo.shape[0] != l.size())
+    if( size_t(dstinfo.shape[0]) != l.size())
         nfo.setSize(ptr, l.size());
 
     for(auto i=0;i<dstinfo.shape[0];++i)

@@ -59,7 +59,6 @@ public:
         while (it != end)
         {
             creator = (*it).second;
-            std::cout << it->first << std::endl;
             py::object object = creator->createInstance(arg);
             if (!object.is_none())
             {
@@ -69,7 +68,6 @@ public:
         }
         return py::none();
     }
-
 };
 
 BindingDataFactory* getBindingDataFactoryInstance();
@@ -111,6 +109,7 @@ py::buffer_info SOFAPYTHON3_API toBufferInfo(BaseData& m);
 py::object SOFAPYTHON3_API convertToPython(BaseData* d);
 
 py::object SOFAPYTHON3_API toPython(BaseData* d, bool writeable=false);
+py::object SOFAPYTHON3_API toPython(const BaseData* d);
 void SOFAPYTHON3_API copyFromListScalar(BaseData& d, const AbstractTypeInfo& nfo, const py::list& l);
 void SOFAPYTHON3_API fromPython(BaseData* d, const py::object& o);
 

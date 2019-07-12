@@ -64,21 +64,29 @@ PSDEDataFactory* getFactoryInstance(){
 
         // vectors
         s_localfactory->registerCreator(
-                    "Vec2d", new DataCreator<sofa::defaulttype::Vec2d>());
+                    "Vec2", new DataCreator<sofa::defaulttype::Vec2d>());
         s_localfactory->registerCreator(
-                    "Vec3d", new DataCreator<sofa::defaulttype::Vec3d>());
+                    "Vec3", new DataCreator<sofa::defaulttype::Vec3d>());
         s_localfactory->registerCreator(
-                    "Vec4d", new DataCreator<sofa::defaulttype::Vec4d>());
+                    "Vec4", new DataCreator<sofa::defaulttype::Vec4d>());
         s_localfactory->registerCreator(
-                    "Vec6d", new DataCreator<sofa::defaulttype::Vec6d>());
+                    "Vec6", new DataCreator<sofa::defaulttype::Vec6d>());
+
         s_localfactory->registerCreator(
-                    "Vec2f", new DataCreator<sofa::defaulttype::Vec2f>());
+                    "[bool]", new DataCreator<sofa::helper::vector<double>>());
         s_localfactory->registerCreator(
-                    "Vec3f", new DataCreator<sofa::defaulttype::Vec3f>());
+                    "[int]", new DataCreator<sofa::helper::vector<double>>());
         s_localfactory->registerCreator(
-                    "Vec4f", new DataCreator<sofa::defaulttype::Vec4f>());
+                    "[double]", new DataCreator<sofa::helper::vector<double>>());
         s_localfactory->registerCreator(
-                    "Vec6f", new DataCreator<sofa::defaulttype::Vec6f>());
+                    "[Vec3]", new DataCreator<sofa::helper::vector<sofa::defaulttype::Vec2d>>());
+        s_localfactory->registerCreator(
+                    "[Vec3]", new DataCreator<sofa::helper::vector<sofa::defaulttype::Vec3d>>());
+        s_localfactory->registerCreator(
+                    "[Vec4]", new DataCreator<sofa::helper::vector<sofa::defaulttype::Vec4d>>());
+        s_localfactory->registerCreator(
+                    "[Vec6]", new DataCreator<sofa::helper::vector<sofa::defaulttype::Vec6d>>());
+
     }
     return s_localfactory ;
 }
@@ -421,25 +429,44 @@ BaseData* deriveTypeFromParent(BaseData* parentData)
 
 BaseData* deriveTypeFromParent(BaseContext* ctx, const std::string& link)
 {
+    std::cout << "link is : " << link << std::endl;
     if (!ctx)
         return nullptr;
 
+    std::cout << "ctx is : " << ctx->toBaseNode()->getPathName() << std::endl;
     // if data is a link
     if (link.empty() || link[0] != '@')
         return nullptr;
 
-    std::string componentPath = link.substr(1, link.find('.') - 1);
+    std::string componentPath = link.substr(0, link.find('.'));
     std::string parentDataName = link.substr(link.find('.') + 1);
-    Base* component;
-    component = ctx->get<BaseObject>(componentPath);
-    if (!component)
-        component = static_cast<sofa::simulation::Node*>(ctx)->getNodeInGraph(componentPath);
+    std::cout << "ComponentPath is: " << componentPath << std::endl;
+    std::cout << "parentDataName is: " << parentDataName << std::endl;
 
-    if(!component)
+    std::list<std::string> token_list;
+    std::istringstream iss(componentPath);
+    std::copy(std::istream_iterator<std::string>(iss),
+         std::istream_iterator<std::string>(),
+         std::back_inserter(token_list));
+
+
+    Base* component = ctx->toBaseNode();
+    std::cout << component->getName() << std::endl;
+    for (auto& name : token_list)
     {
-        throw py::value_error("SofaPython: No object or node with path " + componentPath + " in scene graph.");
+        if (name == "@")
+            continue;
+
+        component = component->toBaseContext()->get<Base>(name);
+        if (!component)
+        {
+            throw py::value_error("SofaPython: No object or node with path " + componentPath + " in scene graph.");
+        }
+        std::cout << component->getName() << std::endl;
     }
+
     BaseData* parentData = component->findData(parentDataName);
+    std::cout << parentData->getName() << std::endl;
     return deriveTypeFromParent(parentData);
 }
 
@@ -510,6 +537,20 @@ void checkAmbiguousCreation(py::object& py_self, const std::string& name, const 
         msg_warning(self) << "Ambiguous creation of " << type << " named '" << name << "' in " << self->getName() << ": Component alread has a python attribute with such name in __dict__";
 }
 
+void _addData(Base* self, BaseData* data, const std::string& name)
+{
+    if (data->getOwner() == nullptr)
+        self->addData(data, name);
+    else
+    {
+        BaseData* newData = data->getNewInstance();
+        newData->setOwner(self);
+        newData->setParent(data);
+        newData->setName(name);
+        self->addData(newData);
+    }
+}
+
 void moduleAddBase(py::module &m)
 {
     py::class_<Base, Base::SPtr> base(m, "Base", py::dynamic_attr(), doc::base::BaseClass);
@@ -541,8 +582,16 @@ void moduleAddBase(py::module &m)
             throw py::value_error("addData: Cannot call addData with name " + name + ": Protected keyword");
         checkAmbiguousCreation(py_self, name, "data");
         BaseData* data;
+        // create the data from another data (use as parent)
+        if (type.empty() && py::cast<BaseData*>(value))
+        {
+            data = deriveTypeFromParent(py::cast<BaseData*>(value));
+            if (!data)
+                throw py::type_error("Cannot deduce type from value");
+            self->addData(data, name);
+        }
         // create the data from the link passed as a string to the object
-        if (type.empty() && py::isinstance<py::str>(value))
+        else if (type.empty() && py::isinstance<py::str>(value))
         {
             if (dynamic_cast<BaseNode*>(self))
                 data = deriveTypeFromParent(dynamic_cast<BaseNode*>(self)->getContext(),
@@ -552,15 +601,7 @@ void moduleAddBase(py::module &m)
                                             py::cast<py::str>(value));
             if (!data)
                 throw py::type_error("Cannot deduce type from value");
-            self->addData(data, name);
-        }
-        // create the data from another data (use as parent)
-        else if (type.empty() && py::cast<BaseData*>(value))
-        {
-            data = deriveTypeFromParent(py::cast<BaseData*>(value));
-            if (!data)
-                throw py::type_error("Cannot deduce type from value");
-            self->addData(data, name);
+            _addData(self, data, name);
         }
         // create the data from the type given in `type` and fill it up
         else
@@ -593,15 +634,15 @@ void moduleAddBase(py::module &m)
         if (!data)
             throw py::type_error("Argument is not a Data!");
 
-        if (data->getOwner() == nullptr)
-            self->addData(data, data->getName());
-        else
-        {
-            BaseData* newData = data->getNewInstance();
-            newData->setOwner(self);
-            newData->setParent(data);
-            newData->setName(data->getName());
-        }
+        _addData(self, data, data->getName());
+    }, sofapython3::doc::base::addDataInitialized);
+
+    base.def("addData", [](Base* self, const std::string& name, py::object d) {
+        BaseData* data = py::cast<BaseData*>(d);
+        if (!data)
+            throw py::type_error("Argument is not a Data!");
+
+        _addData(self, data, name);
     }, sofapython3::doc::base::addDataInitialized);
 
     base.def("__dir__", [](Base* self)
