@@ -49,7 +49,7 @@ namespace sofapython3
                                "bFactor"_a=mparams->bFactor(),
                                "kFactor"_a=mparams->kFactor(),
                                "energy"_a=mparams->energy());
-        PYBIND11_OVERLOAD_PURE(void, ForceField, addForce, toPython(&f,true), toPython(&x), toPython(&v), mp);
+        PYBIND11_OVERLOAD_PURE(void, ForceField, addForce, mp, toPython(&f,true), toPython(&x), toPython(&v));
     }
 
     // pass mFactor, kFactor
@@ -59,7 +59,7 @@ namespace sofapython3
         py::dict mp = py::dict("nFactor"_a=mparams->mFactor(),
                                "bFactor"_a=mparams->bFactor(),
                                "kFactor"_a=mparams->kFactor());
-        PYBIND11_OVERLOAD_PURE(void, ForceField, addDForce, toPython(&df,true), toPython(&dx), mp);
+        PYBIND11_OVERLOAD_PURE(void, ForceField, addDForce, mp, toPython(&df,true), toPython(&dx));
     }
 
     py::object ForceField_Trampoline::_addKToMatrix(const MechanicalParams* mparams, int nIndices, int nDofs)
@@ -68,7 +68,7 @@ namespace sofapython3
                                "bFactor"_a=mparams->bFactor(),
                                "kFactor"_a=mparams->kFactor());
 
-        PYBIND11_OVERLOAD_PURE(py::object, ForceField, addKToMatrix, nIndices, nDofs, mp);
+        PYBIND11_OVERLOAD_PURE(py::object, ForceField, addKToMatrix, mp, nIndices, nDofs);
     }
 
     // pass k/b/mFactor

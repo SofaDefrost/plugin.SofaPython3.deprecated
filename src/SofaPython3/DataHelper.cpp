@@ -383,9 +383,10 @@ py::object toPython(BaseData* d, bool writeable)
     {
         if(!writeable)
         {
-            getPythonArrayFor(d);
-            return getBindingDataFactoryInstance()->createObject("DataContainer", d);
+            // return a copy
+            return convertToPython(d);
         }
+        // return a pointer
         return getPythonArrayFor(d);
     }
     /// If this is not the case we return the converted datas (copy)
