@@ -3,66 +3,9 @@
 import unittest
 import Sofa
 import Sofa.Core
-import numpy as np
 import SofaRuntime
-
-
-class MyRestShapeSpringsForcefield(Sofa.Core.ForceField):
-    def __init__(self, *args, **kwargs):
-        Sofa.Core.ForceField.__init__(self, *args, **kwargs)
-
-        if kwargs.get("stiffness") is not None:
-            self.addData(name="stiffness", value=kwargs.get("stiffness"), type="double",
-                         help="scalar value representing the stiffness between"
-                              "the actual position and the rest shape position")
-        self.addData(name="rest_pos", value=kwargs.get("rest_pos"))
-
-    def init(self):
-        try:
-            hasattr(self, "indices")
-        except:
-            self.indices = range(0, len(self.rest_pos.value))
-
-    def addForce(self, m, forces, pos, vel):
-        print("addForce")
-        k = self.stiffness.value
-        for index in self.indices:
-            forces[index] -= (pos[index] - self.rest_pos.value[index]) * k
-
-    def addDForce(self, m, dforce, dx):
-        print("addDForce")
-        # kFactorIncludingRayleighDamping -> assuming rayleighStiffness of 0.0
-        # kF = mparams['kFactor'] + mparams['bFactor'] * self.rayleighStiffness.value
-        k = self.stiffness.value * m['kFactor']
-        for index in self.indices:
-            dforce[index] -= dx[index] * k
-
-    def _addKToMatrix_selectivePoints(self, mparams, nNodes, nDofs):
-        K = []
-
-        # kFactorIncludingRayleighDamping => rayleighStiffness = 0.0
-        kF = mparams['kFactor'] + mparams['bFactor'] * 0.0
-
-        for index in self.indices:
-            for n in range(0, nDofs):
-                K.append([nDofs * index + n, nDofs * index +
-                          n, -kF * self.stiffness.value])
-        return np.asarray(K)
-
-    def _addKToMatrix_plainMatrix(self, mparams, nNodes, nDofs):
-        K = np.zeros((nNodes * nDofs, nNodes * nDofs, 1), dtype=float)
-        # kFactorIncludingRayleighDamping => rayleighStiffness = 0.0
-        kF = mparams['kFactor'] + mparams['bFactor'] * 0.0
-
-        for idx in self.indices:
-            for n in range(0, nDofs):
-                K[nDofs * idx + n, nDofs * idx + n] = -kF * self.stiffness.value
-        return np.asarray(K)
-
-    def addKToMatrix(self, mparams, nNodes, nDofs):
-        print("addKToMatrix")
-        # self.K = self._addKToMatrix_selectivePoints(mparams, nNodes, nDofs)
-        return self._addKToMatrix_plainMatrix(mparams, nNodes, nDofs)
+from MyRestShapeForceField import MyRestShapeSpringsForcefield
+from numpy.linalg import norm as np_norm
 
 
 def createIntegrationScheme(node, use_implicit_scheme):
@@ -78,100 +21,74 @@ def createSolver(node, use_iterative_solver):
         node.addObject('CGLinearSolver', name='linearSolver',
                        iterations=30, tolerance=1.e-9, threshold=1.e-9)
     else:
+        SofaRuntime.importPlugin("SofaSparseSolver")
         node.addObject('SparseLDLSolver', name='ldlSolver')
 
 
-def createDragon(node, node_name, use_implicit_scheme, use_iterative_solver):
-    dragon = node.addChild(node_name)
-    createIntegrationScheme(dragon, use_implicit_scheme)
-    createSolver(dragon, use_iterative_solver)
-    dragon.addObject('SparseGridTopology', n=[
-                     10, 5, 10], fileTopology="mesh/dragon.obj")
-    dofs = dragon.addObject(
-        'MechanicalObject', name="DOFs")
-    dragon.addObject('UniformMass', totalMass=1.0)
+def createParticle(node, node_name, use_implicit_scheme, use_iterative_solver):
+    p = node.addChild(node_name)
+    createIntegrationScheme(p, use_implicit_scheme)
+    createSolver(p, use_iterative_solver)
+    dofs = p.addObject('MechanicalObject', name="MO", position=[0, 0, 0])
+    p.addObject('UniformMass', totalMass=1.0)
 
     myRSSFF = MyRestShapeSpringsForcefield(name="Springs",
                                            stiffness=50,
                                            mstate=dofs, rest_pos=dofs.rest_position)
-    dragon.addObject(myRSSFF)
-
-    visu = dragon.addChild("Visu")
-    vm = visu.addObject('OglModel', fileMesh="mesh/dragon.obj",
-                        color=[1.0, 0.5, 1.0, 1.0])
-    visu.addObject('BarycentricMapping',
-                   input=dofs.getLink(), output=vm.getLink())
-
-    collision = dragon.addChild("Collis")
-    collision.addObject('MeshObjLoader', name="loader",
-                        filename="mesh/dragon.obj")
-    collision.addObject('Mesh', src="@loader")
-    collision.addObject('MechanicalObject', src="@loader")
-    collision.addObject('TriangleCollisionModel', group="1")
-    collision.addObject('LineCollisionModel', group="1")
-    collision.addObject('PointCollisionModel', group="1")
-    collision.addObject('BarycentricMapping', input="@..", output="@.")
-
-
-def createCube(node, node_name, use_implicit_scheme, use_iterative_solver):
-    cube = node.addChild(node_name)
-    createIntegrationScheme(cube, use_implicit_scheme)
-    createSolver(cube, use_iterative_solver)
-    cube.addObject('SparseGridTopology', n=[
-                   2, 2, 2], fileTopology="mesh/smCube27.obj")
-    dofs = cube.addObject('MechanicalObject', name="DOFs", dy=20)
-    cube.addObject('UniformMass', totalMass=1.0)
-
-    myRSSFF = MyRestShapeSpringsForcefield(name="Springs",
-                                           stiffness=50,
-                                           mstate=dofs, rest_pos=dofs.rest_position)
-    cube.addObject(myRSSFF)
-
-    visu = cube.addChild("Visu")
-    vm = visu.addObject(
-        'OglModel', fileMesh="mesh/smCube27.obj", color=[0.5, 1.0, 0.5, 1.0])
-    visu.addObject('BarycentricMapping',
-                   input=dofs.getLink(), output=vm.getLink())
-
-    collision = cube.addChild("Collis")
-    collision.addObject('MeshObjLoader', name="loader",
-                        filename="mesh/smCube27.obj", triangulate=True)
-    collision.addObject('Mesh', src="@loader")
-    collision.addObject('MechanicalObject', src="@loader")
-    collision.addObject('TriangleCollisionModel', group="1")
-    collision.addObject('LineCollisionModel', group="1")
-    collision.addObject('PointCollisionModel', group="1")
-    collision.addObject('BarycentricMapping', input="@..", output="@.")
+    p.addObject(myRSSFF)
 
 
 def rssffScene(use_implicit_scheme=True, use_iterative_solver=True):
     SofaRuntime.importPlugin("SofaAllCommonComponents")
-    SofaRuntime.importPlugin("SofaSparseSolver")
     node = Sofa.Core.Node("root")
     node.gravity = [0, -10, 0]
-    createDragon(node, "Dragon", use_implicit_scheme, use_iterative_solver)
-    createCube(node, "Cube", use_implicit_scheme, use_iterative_solver)
+    createParticle(node, "particle", use_implicit_scheme, use_iterative_solver)
     return node
 
 
 class Test(unittest.TestCase):
 
     def test_0_explicit(self):
-        rssffScene(use_implicit_scheme=False, use_iterative_solver=False)
+        root = rssffScene(use_implicit_scheme=False,
+                          use_iterative_solver=False)
 
         # do some steps here
+        Sofa.Simulation.init(root)
+
+        for i in range(0, 100):
+            Sofa.Simulation.animate(root, root.dt.value)
+            print(root.particle.MO.position.value)
+            self.assertLess(np_norm(
+                root.particle.MO.rest_position.value - root.particle.MO.position.value), 0.5,
+                "Passed threshold on step " + str(i) + ".")
         return
 
     def test_1_implicit_iterative(self):
-        rssffScene(use_implicit_scheme=True, use_iterative_solver=True)
+        root = rssffScene(use_implicit_scheme=True, use_iterative_solver=True)
 
         # do some steps here
+        Sofa.Simulation.init(root)
+
+        for i in range(0, 100):
+            Sofa.Simulation.animate(root, root.dt.value)
+            print(root.particle.MO.position.value)
+            self.assertLess(np_norm(
+                root.particle.MO.rest_position.value - root.particle.MO.position.value), 0.3,
+                "Passed threshold on step " + str(i) + ".")
         return
 
     def test_2_implicit_direct(self):
-        rssffScene(use_implicit_scheme=True, use_iterative_solver=False)
+        root = rssffScene(use_implicit_scheme=True, use_iterative_solver=False)
 
         # do some steps here
+        Sofa.Simulation.init(root)
+
+        for i in range(0, 100):
+            Sofa.Simulation.animate(root, root.dt.value)
+            print(root.particle.MO.position.value)
+            self.assertLess(np_norm(
+                root.particle.MO.rest_position.value - root.particle.MO.position.value), 0.3,
+                "Passed threshold on step " + str(i) + ".")
         return
 
 
