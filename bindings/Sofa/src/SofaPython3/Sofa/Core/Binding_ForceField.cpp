@@ -77,7 +77,7 @@ namespace sofapython3
         MultiMatrixAccessor::MatrixRef mref = dfId->getMatrix(this->mstate);
         sofa::defaulttype::BaseMatrix* mat = mref.matrix;
 
-        int offset = int(mref.offset);
+        size_t offset = mref.offset;
         // nNodes is the number of nodes (positions) of the object whose K matrix we're computing
         int nNodes = int(mparams->readX(mstate)->getValue().size());
         // nDofs is the number of degrees of freedom per-element of the object whose K matrix we're computing
@@ -89,28 +89,25 @@ namespace sofapython3
         if(py::isinstance<py::array>(ret))
         {
             auto r = py::cast<py::array>(ret);
-            if (r.ndim() == 2)
+            if (r.ndim() == 3 && r.shape(2) == 1)
             {
                 // read K as a plain 2D matrix
-                auto kMatrix = r.unchecked<double, 2>();
-                for (auto x = 0 ; x < kMatrix.shape(0) ; ++x)
+                auto kMatrix = r.unchecked<double, 3>();
+                for (size_t x = 0 ; x < size_t(kMatrix.shape(0)) ; ++x)
                 {
-                    for (auto y = 0 ; y < kMatrix.shape(1) ; ++y)
+                    for (size_t y = 0 ; y < size_t(kMatrix.shape(1)) ; ++y)
                     {
-                        mat->add(offset + x, offset + y, kMatrix(x,y));
+                        mat->add(offset + x, offset + y, kMatrix(x,y, 0));
                     }
                 }
             }
-            else if (r.ndim() == 1)
+            else if (r.ndim() == 2 && r.shape(1) == 3)
             {
                 // consider ret to be a list of tuples [(i,j,[val])]
-                auto kMatrix = r.unchecked<py::object, 1>();
-                for (auto x = 0 ; x < kMatrix.size() ; ++x)
+                auto kMatrix = r.unchecked<double, 2>();
+                for (auto x = 0 ; x < kMatrix.shape(0) ; ++x)
                 {
-                    py::tuple tuple = py::cast<py::tuple>(kMatrix(x));
-                    if (tuple.size() != 3)
-                        throw py::type_error("When returning a 1D numpy array in AddKToMatrix, elements must be tuples following the following structure: (i, j, val)");
-                    mat->add(offset + py::cast<int>(tuple[0]), offset + py::cast<int>(tuple[1]), py::cast<double>(tuple[2]));
+                    mat->add(offset + size_t(kMatrix(x,0)), offset + size_t(kMatrix(x,1)), kMatrix(x,2));
                 }
             }
             else

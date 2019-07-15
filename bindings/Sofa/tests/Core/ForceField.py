@@ -37,19 +37,32 @@ class MyRestShapeSpringsForcefield(Sofa.Core.ForceField):
         for index in self.indices:
             dforce[index] -= dx[index] * k
 
-    def addKToMatrix(self, nNodes, nDofs, mparams):
-        print("addKToMatrix")
-        self.K = np.zeros(nDofs * len(self.indices))
+    def _addKToMatrix_selectivePoints(self, mparams, nNodes, nDofs):
+        K = []
 
-        # kFactorIncludingRayleighDamping
-        kF = mparams['kFactor'] + mparams['bFactor'] * self.stiffness.value
+        # kFactorIncludingRayleighDamping => rayleighStiffness = 0.0
+        kF = mparams['kFactor'] + mparams['bFactor'] * 0.0
 
-        for Ki, index in zip(self.K, self.indices):
+        for index in self.indices:
             for n in range(0, nDofs):
-                Ki += (nDofs * index + n, nDofs * index +
-                       n, -kF * self.stiffness.value)
+                K.append([nDofs * index + n, nDofs * index +
+                          n, -kF * self.stiffness.value])
+        return np.asarray(K)
 
-        return self.K
+    def _addKToMatrix_plainMatrix(self, mparams, nNodes, nDofs):
+        K = np.zeros((nNodes * nDofs, nNodes * nDofs, 1), dtype=float)
+        # kFactorIncludingRayleighDamping => rayleighStiffness = 0.0
+        kF = mparams['kFactor'] + mparams['bFactor'] * 0.0
+
+        for idx in self.indices:
+            for n in range(0, nDofs):
+                K[nDofs * idx + n, nDofs * idx + n] = -kF * self.stiffness.value
+        return np.asarray(K)
+
+    def addKToMatrix(self, mparams, nNodes, nDofs):
+        print("addKToMatrix")
+        # self.K = self._addKToMatrix_selectivePoints(mparams, nNodes, nDofs)
+        return self._addKToMatrix_plainMatrix(mparams, nNodes, nDofs)
 
 
 def createIntegrationScheme(node, use_implicit_scheme):
@@ -76,7 +89,7 @@ def createDragon(node, node_name, use_implicit_scheme, use_iterative_solver):
                      10, 5, 10], fileTopology="mesh/dragon.obj")
     dofs = dragon.addObject(
         'MechanicalObject', name="DOFs")
-    dragon.addObject('UniformMass', totalMass=1)
+    dragon.addObject('UniformMass', totalMass=1.0)
 
     myRSSFF = MyRestShapeSpringsForcefield(name="Springs",
                                            stiffness=50,
@@ -105,7 +118,7 @@ def createCube(node, node_name, use_implicit_scheme, use_iterative_solver):
     createIntegrationScheme(cube, use_implicit_scheme)
     createSolver(cube, use_iterative_solver)
     cube.addObject('SparseGridTopology', n=[
-                   10, 5, 10], fileTopology="mesh/smCube27.obj")
+                   2, 2, 2], fileTopology="mesh/smCube27.obj")
     dofs = cube.addObject('MechanicalObject', name="DOFs", dy=20)
     cube.addObject('UniformMass', totalMass=1.0)
 
