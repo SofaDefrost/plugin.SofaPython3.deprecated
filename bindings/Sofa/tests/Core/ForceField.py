@@ -47,7 +47,6 @@ def rssffScene(use_implicit_scheme=True, use_iterative_solver=True):
 
 
 class Test(unittest.TestCase):
-
     def test_0_explicit(self):
         root = rssffScene(use_implicit_scheme=False,
                           use_iterative_solver=False)
@@ -91,22 +90,22 @@ class Test(unittest.TestCase):
                 "Passed threshold on step " + str(i) + ".")
         return
 
+    def test_animation(self):
+        node = Sofa.Core.Node("TestAnimation")
+        node.addObject("RequiredPlugin", name="SofaOpenglVisual")
+        node.addObject("RequiredPlugin", name="SofaSparseSolver")
+        node.addObject("OglLineAxis")
+        node.addObject("DefaultAnimationLoop", name="loop")
+        node.addObject("EulerImplicit")
+        node.addObject("CGLinearSolver", tolerance=1e-12, threshold=1e-12)
+        # node.addObject("SparseLDLSolver")
 
-def getTestsName():
-    suite = unittest.TestLoader().loadTestsFromTestCase(Test)
-    return [test.id().split(".")[2] for test in suite]
+        #object1.addChild( MyForceField("customFF", ks=5.0) )
+        a = node.addChild(RestShapeObject(MyForceField(
+            "customFF", ks=5.0), name="python", position=[[i*1-10.0, 0, 0] for i in range(200)]))
+        a.mechanical.showColor = [1.0, 0.0, 0.0, 1.0]
+        b = node.addChild(RestShapeObject(CreateObject("RestShapeSpringsForceField",
+                                                       stiffness=5.0), name="c++", position=[[i*0.5-1.0, 0, 0] for i in range(1)]))
+        b.mechanical.showColor = [1.0, 1.0, 0.0, 1.0]
 
-
-def runTests():
-    import sys
-    suite = None
-    if(len(sys.argv) == 1):
-        suite = unittest.TestLoader().loadTestsFromTestCase(Test)
-    else:
-        suite = unittest.TestSuite()
-        suite.addTest(Test(sys.argv[1]))
-    return unittest.TextTestRunner(verbosity=1).run(suite).wasSuccessful()
-
-
-def createScene(rootNode):
-    rootNode.addChild(Test().test_animation())
+        return node

@@ -114,7 +114,7 @@ py::object BindingBase::GetAttr(Base* self, const std::string& s, bool doThrowEx
     /// Search if there is a data with the given name.
     /// If this is the case returns the corresponding python type.
     if(BaseData* d = self->findData(s)){
-        return py::cast(d);
+        return dataToPython(d);
     }
 
     /// Search if there is a link with the given name.
@@ -695,6 +695,8 @@ void moduleAddBase(py::module &m)
 
         BindingBase::SetAttr(self,s,value);
     });
+    base.def("getClassName",&Base::getClassName, sofapython3::doc::base::getClassName);
+    base.def("getTemplateName",&Base::getTemplateName, sofapython3::doc::base::getTemplateName);
 }
 
 } /// namespace sofapython3

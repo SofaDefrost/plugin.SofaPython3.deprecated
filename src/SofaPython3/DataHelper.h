@@ -86,7 +86,6 @@ template <typename T> class py_shared_ptr : public sofa::core::sptr<T>
 public:
     py_shared_ptr(T *ptr) : sofa::core::sptr<T>(ptr)
     {
-        std::cout << "Hooking the python objects..." << std::endl ;
         auto nptr = dynamic_cast<PythonTrampoline*>(ptr);
         if(nptr)
             nptr->setInstance( py::cast(ptr) ) ;
@@ -114,6 +113,8 @@ void SOFAPYTHON3_API copyFromListScalar(BaseData& d, const AbstractTypeInfo& nfo
 void SOFAPYTHON3_API fromPython(BaseData* d, const py::object& o);
 
 std::string SOFAPYTHON3_API toSofaParsableString(const py::handle& p);
+
+py::object SOFAPYTHON3_API dataToPython(BaseData* d);
 
 /// RVO optimized function. Don't care about copy on the return code.
 void SOFAPYTHON3_API fillBaseObjectdescription(sofa::core::objectmodel::BaseObjectDescription& desc,

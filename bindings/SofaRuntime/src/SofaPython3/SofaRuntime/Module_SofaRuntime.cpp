@@ -29,6 +29,8 @@ using sofapython3::SceneLoaderPY3;
 #include <SofaSimulationCommon/init.h>
 #include <SofaSimulationGraph/init.h>
 
+#include <sofa/helper/system/FileRepository.h>
+
 #include <SofaPython3/Sofa/Core/Binding_Base.h>
 #include <SofaPython3/Sofa/Core/Binding_Node.h>
 #include <SofaPython3/Sofa/Core/Binding_Simulation.h>
@@ -89,12 +91,12 @@ PYBIND11_MODULE(SofaRuntime, m) {
     //    sofa::simulation::setSimulation(new DAGSimulation());
 
     /// We need to import the project dependencies
-    py::module::import("Sofa");
+    py::module::import("Sofa.Core");
+    py::module::import("Sofa.Helper");
 
     /// Check if there is already a SceneLoaderFactory. In case not load it.
     if( !SceneLoaderFactory::getInstance()->getEntryFileExtension("py3") )
     {
-        std::cout << "Registering loader for python3 files" << std::endl ;
         SceneLoaderFactory::getInstance()->addEntry(new SceneLoaderPY3());
         sofa::helper::BackTrace::autodump();
     }
@@ -103,6 +105,9 @@ PYBIND11_MODULE(SofaRuntime, m) {
     {
         return simpleapi::importPlugin(name);
     });
+
+    m.add_object("DataRepository", py::cast(&sofa::helper::system::DataRepository));
+    m.add_object("PluginRepository", py::cast(&sofa::helper::system::PluginRepository));
 
     addSubmoduleInput(m);
     addSubmoduleTimer(m);
