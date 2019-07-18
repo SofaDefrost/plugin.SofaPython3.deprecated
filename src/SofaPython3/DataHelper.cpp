@@ -474,7 +474,7 @@ void fromPython(BaseData* d, const py::object& o)
         return ;
     }
 
-    if(nfo.Scalar())
+    if(nfo.Scalar() || nfo.Integer())
         return copyFromListScalar(*d, nfo, o);
 
     msg_error("SofaPython3") << "binding problem, trying to set value for "

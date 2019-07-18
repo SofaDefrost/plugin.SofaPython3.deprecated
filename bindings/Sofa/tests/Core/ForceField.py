@@ -3,6 +3,7 @@
 import unittest
 import Sofa
 import Sofa.Core
+import Sofa.Helper
 import SofaRuntime
 from MyRestShapeForceField import MyRestShapeSpringsForcefield
 from numpy.linalg import norm as np_norm
@@ -32,6 +33,7 @@ def createParticle(node, node_name, use_implicit_scheme, use_iterative_solver):
     dofs = p.addObject('MechanicalObject', name="MO", position=[0, 0, 0])
     p.addObject('UniformMass', totalMass=1.0)
 
+    print ("dofs.rest_position " + str(dofs.rest_position.value))
     myRSSFF = MyRestShapeSpringsForcefield(name="Springs",
                                            stiffness=50,
                                            mstate=dofs, rest_pos=dofs.rest_position)
@@ -58,7 +60,7 @@ class Test(unittest.TestCase):
             Sofa.Simulation.animate(root, root.dt.value)
             print(root.particle.MO.position.value)
             self.assertLess(np_norm(
-                root.particle.MO.rest_position.value - root.particle.MO.position.value), 0.5,
+                root.particle.MO.rest_position.value - root.particle.MO.position.value), 0.41,
                 "Passed threshold on step " + str(i) + ".")
         return
 
@@ -72,7 +74,7 @@ class Test(unittest.TestCase):
             Sofa.Simulation.animate(root, root.dt.value)
             print(root.particle.MO.position.value)
             self.assertLess(np_norm(
-                root.particle.MO.rest_position.value - root.particle.MO.position.value), 0.3,
+                root.particle.MO.rest_position.value - root.particle.MO.position.value), 0.26,
                 "Passed threshold on step " + str(i) + ".")
         return
 
@@ -86,7 +88,7 @@ class Test(unittest.TestCase):
             Sofa.Simulation.animate(root, root.dt.value)
             print(root.particle.MO.position.value)
             self.assertLess(np_norm(
-                root.particle.MO.rest_position.value - root.particle.MO.position.value), 0.3,
+                root.particle.MO.rest_position.value - root.particle.MO.position.value), 0.26,
                 "Passed threshold on step " + str(i) + ".")
         return
 

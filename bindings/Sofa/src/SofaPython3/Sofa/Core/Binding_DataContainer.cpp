@@ -15,6 +15,7 @@ using  sofa::core::objectmodel::BaseNode;
 #include "Binding_Base.h"
 #include "Binding_BaseData.h"
 #include "Binding_DataContainer.h"
+#include "Binding_DataContainer_doc.h"
 
 #include <sofa/defaulttype/BoundingBox.h>
 
@@ -159,6 +160,12 @@ void moduleAddDataContainer(py::module& m)
         a.attr("flags").attr("writeable") = false;
         return a;
     });
+
+    p.def("__len__", [](DataContainer* self){
+        auto nfo = self->getValueTypeInfo();
+        //return nfo->size(self->getValueVoidPtr()) / nfo->size();
+        return nfo->size();
+    }, sofapython3::doc::datacontainer::__len__);
 
     p.def("writeable", [](DataContainer* self, py::object f) -> py::object
     {

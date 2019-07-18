@@ -24,6 +24,13 @@ namespace sofapython3
 void moduleAddBaseData(py::module& m)
 {
     py::class_<BaseData, raw_ptr<BaseData>> data(m, "Data");
+    data.def("hasChanged", [](BaseData& data){
+        if (data.isDirty()) {
+            data.update();
+            return true;
+        }
+        return false;
+    });
     data.def("setName", &BaseData::setName);
     data.def("getName", &BaseData::getName);
     data.def("getCounter", &BaseData::getCounter );
@@ -32,6 +39,9 @@ void moduleAddBaseData(py::module& m)
     data.def("getOwner", &BaseData::getOwner);
     data.def("getParent", &BaseData::getParent);
     data.def("typeName", [](BaseData& data){ return data.getValueTypeInfo()->name(); });
+
+    data.def("isSet", [](BaseData& data){ return data.isSet(); });
+
     data.def("getPathName", [](BaseData& self)
     {
         Base* b= self.getOwner();

@@ -56,7 +56,7 @@ PSDEDataFactory* getFactoryInstance(){
 
         s_localfactory = new PSDEDataFactory();
         // Scalars
-        s_localfactory->registerCreator("string", new DataCreator<std::string>());
+        s_localfactory->registerCreator("str", new DataCreator<std::string>());
         s_localfactory->registerCreator("float", new DataCreator<float>());
         s_localfactory->registerCreator("double", new DataCreator<double>());
         s_localfactory->registerCreator("bool", new DataCreator<bool>());
@@ -73,11 +73,15 @@ PSDEDataFactory* getFactoryInstance(){
                     "Vec6", new DataCreator<sofa::defaulttype::Vec6d>());
 
         s_localfactory->registerCreator(
-                    "[bool]", new DataCreator<sofa::helper::vector<double>>());
+                    "[bool]", new DataCreator<sofa::helper::vector<bool>>());
         s_localfactory->registerCreator(
-                    "[int]", new DataCreator<sofa::helper::vector<double>>());
+                    "[int]", new DataCreator<sofa::helper::vector<int>>());
         s_localfactory->registerCreator(
                     "[double]", new DataCreator<sofa::helper::vector<double>>());
+        s_localfactory->registerCreator(
+                    "[float]", new DataCreator<sofa::helper::vector<float>>());
+        s_localfactory->registerCreator(
+                    "[str]", new DataCreator<sofa::helper::vector<std::string>>());
         s_localfactory->registerCreator(
                     "[Vec3]", new DataCreator<sofa::helper::vector<sofa::defaulttype::Vec2d>>());
         s_localfactory->registerCreator(
@@ -574,16 +578,32 @@ void moduleAddBase(py::module &m)
     base.def("findLink", &Base::findLink, pybind11::return_value_policy::reference, sofapython3::doc::base::findLink);
     base.def("getLinks", &Base::getLinks, pybind11::return_value_policy::reference, sofapython3::doc::base::getLinks);
     base.def("addData", [](py::object py_self, const std::string& name,
-             py::object value = py::object(), const std::string& help = "",
+             py::object value = py::none(), py::object defaultValue = py::none(), const std::string& help = "",
              const std::string& group = "", std::string type = "")
     {
+        bool isDefault = false;
         Base* self = py::cast<Base*>(py_self);
         if (isProtectedKeyword(name))
             throw py::value_error("addData: Cannot call addData with name " + name + ": Protected keyword");
         checkAmbiguousCreation(py_self, name, "data");
         BaseData* data;
+
+        if (py::isinstance<BaseData>(value))
+        {
+            type = "";
+        }
+
+        if (value.is(py::none()))
+        {
+            if (py::isinstance<BaseData>(defaultValue))
+            {
+                type = "";
+            }
+            value = defaultValue;
+            isDefault = true;
+        }
         // create the data from another data (use as parent)
-        if (type.empty() && py::cast<BaseData*>(value))
+        if (type.empty() && py::isinstance<BaseData>(value))
         {
             data = deriveTypeFromParent(py::cast<BaseData*>(value));
             if (!data)
@@ -618,16 +638,20 @@ void moduleAddBase(py::module &m)
 
                 throw py::type_error(std::string("Invalid Type string: available types are\n") + typesString);
             }
-            self->addData(data, name);
-            fromPython(data, value);
+            _addData(self, data, name);
+            if (!value.is(py::none()))
+            {
+                fromPython(data, value);
+            }
         }
         data->setName(name);
         data->setGroup(group.c_str());
         data->setHelp(help.c_str());
         data->setDisplayed(true);
         data->setPersistent(true);
-
-    }, "name"_a, "value"_a = "", "help"_a = "", "group"_a = "", "type"_a = "", sofapython3::doc::base::addData);
+        if (isDefault)
+            data->unset();
+    }, "name"_a, "value"_a = "", "default"_a = "", "help"_a = "", "group"_a = "", "type"_a = "", sofapython3::doc::base::addData);
 
     base.def("addData", [](Base* self, py::object d) {
         BaseData* data = py::cast<BaseData*>(d);
