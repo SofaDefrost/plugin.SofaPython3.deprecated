@@ -464,11 +464,17 @@ void copyFromListScalar(BaseData& d, const AbstractTypeInfo& nfo, const py::list
     }
     std::cout << "2D vector. shape[0]:" << dstinfo.shape[0] << "list size: " << l.size() << std::endl;
     void* ptr = d.beginEditVoidPtr();
+    std::cout << nfo.size() << std::endl;
+    std::cout << nfo.size(ptr) << std::endl;
     if( size_t(dstinfo.shape[0]) != l.size())
     {
         if (nfo.FixedSize())
             std::cout << "This vector has a fixed size." << std::endl;
+        if (nfo.BaseType()->FixedSize())
+            std::cout << "The vector's BaseType is not resizable!" << std::endl;
+        /// This just doesn't work...
         nfo.setSize(ptr, l.size());
+
     }
     std::cout << nfo.size() << std::endl;
     std::cout << nfo.size(ptr) << std::endl;
