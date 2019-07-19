@@ -428,12 +428,19 @@ void copyFromListScalar(BaseData& d, const AbstractTypeInfo& nfo, const py::list
     {
         void* ptr = d.beginEditVoidPtr();
 
-        if( (size_t)dstinfo.shape[0] != l.size())
+        if( size_t(dstinfo.shape[0]) != l.size())
             nfo.setSize(ptr, l.size());
-        for(size_t i=0;i<l.size();++i)
-        {
-            nfo.setScalarValue(ptr, i, py::cast<double>(l[i]));
-        }
+        if (nfo.Scalar())
+            for(size_t i=0;i<l.size();++i)
+            {
+                nfo.setScalarValue(ptr, i, py::cast<double>(l[i]));
+            }
+        if (nfo.Integer())
+            for(size_t i=0;i<l.size();++i)
+            {
+                nfo.setIntegerValue(ptr, i, py::cast<long long>(l[i]));
+            }
+
         d.endEditVoidPtr();
         return;
     }
@@ -468,7 +475,7 @@ void fromPython(BaseData* d, const py::object& o)
         return ;
     }
 
-    if(nfo.Scalar())
+    if(nfo.Scalar() || nfo.Integer())
         return copyFromListScalar(*d, nfo, o);
 
     msg_error("SofaPython3") << "binding problem, trying to set value for "

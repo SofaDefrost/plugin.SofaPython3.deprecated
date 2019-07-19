@@ -678,7 +678,9 @@ void moduleAddBase(py::module &m)
                 throw py::type_error(std::string("Invalid Type string: available types are\n") + typesString);
             }
             self->addData(data, name);
+            std::cout << "COUCOU" << std::endl;
             fromPython(data, value);
+            std::cout << "POUETPOUET" << std::endl;
         }
         data->setName(name);
         data->setGroup(group.c_str());

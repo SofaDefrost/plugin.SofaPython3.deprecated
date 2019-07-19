@@ -153,13 +153,19 @@ void moduleAddDataContainer(py::module& m)
     p.def("__len__", [](DataContainer* self)                     /// In numpy the len is the number of element in the first
                                                                  /// dimmension.
     {
+        std::cout << "in len" << std::endl;
         auto nfo = self->getValueTypeInfo();
         auto itemNfo = nfo->BaseType();
+        std::cout << nfo->name() << std::endl;
 
         /// This is a 1D container
-        if( itemNfo->Container() )
+        if( !itemNfo->Container() )
+        {
+            std::cout << "1D container" << std::endl;
             return nfo->size(self->getValueVoidPtr()) / itemNfo->size();
-
+        }
+        std::cout << "2D container" << std::endl;
+        std::cout << nfo->size(self->getValueVoidPtr()) << std::endl;
         return nfo->size(self->getValueVoidPtr());
     });
 
