@@ -12,27 +12,30 @@ class NpArrayTestController(Sofa.Core.Controller):
         Sofa.Core.Controller.__init__(self, *args, **kwargs)
 
         self.addData(name="vector_Vec3_1entry", type="vector<Vec3d>", value=[[1,2,3]], default=[[1,2,3]])
-        self.addData(name="vector_Vec3_3entries", type="vector<Vec3d>", value=[[1,2,3],[4,5,6],[7,8,9]])
 
-        self.addData(name="vector_int_1entry", type="vector<int>", value=[1])
-        self.addData(name="vector_int_3entries", type="vector<int>", value=[1,2,3])
+#        self.addData(name="vector_Vec3_3entries", type="vector<Vec3d>", value=[[1,2,3],[4,5,6],[7,8,9]])
 
-        self.addData(name="vector_scalar_1entries", type="vector<double>", value=[1.0])
-        self.addData(name="vector_scalar_3entries", type="vector<double>", value=[1.0,2.0,3.0])
+#        self.addData(name="vector_int_1entry", type="vector<int>", value=[1])
+#        self.addData(name="vector_int_3entries", type="vector<int>", value=[1,2,3])
+
+#        self.addData(name="vector_scalar_1entries", type="vector<double>", value=[1.0])
+#        self.addData(name="vector_scalar_3entries", type="vector<double>", value=[1.0,2.0,3.0])
 
 #        self.addData(name="vector_text_1entries", type="vector<string>", value=["v1"])
 #        self.addData(name="vector_text_3entries", type="vector<string>", value=["v1","v2","v3"])
 
     def testLen(self, test):
-        print(self.vector_Vec3_1entry.value.array())
+        print ("testLen")
+        print(self.vector_Vec3_1entry.array())
         test.assertEqual(len(self.vector_Vec3_1entry), 1)
         test.assertEqual(len(self.vector_Vec3_3entries), 3)
+        print ("testLen")
 
-        test.assertEqual(len(self.vector_int_1entry), 1)
-        test.assertEqual(len(self.vector_int_3entries), 3)
+#        test.assertEqual(len(self.vector_int_1entry), 1)
+#        test.assertEqual(len(self.vector_int_3entries), 3)
 
-        test.assertEqual(len(self.vector_scalar_1entries), 1)
-        test.assertEqual(len(self.vector_scalar_3entries), 3)
+#        test.assertEqual(len(self.vector_scalar_1entries), 1)
+#        test.assertEqual(len(self.vector_scalar_3entries), 3)
 
 #        test.assertEqual(len(self.vector_text_1entries), 1)
 #        test.assertEqual(len(self.vector_text_3entries), 3)
@@ -41,11 +44,11 @@ class NpArrayTestController(Sofa.Core.Controller):
         test.assertEqual(self.vector_Vec3_1entry.size, 3)
         test.assertEqual(self.vector_Vec3_3entries.size, 9)
 
-        test.assertEqual(self.vector_int_1entry.size, 1)
-        test.assertEqual(self.vector_int_3entries.size, 3)
+#        test.assertEqual(self.vector_int_1entry.size, 1)
+#        test.assertEqual(self.vector_int_3entries.size, 3)
 
-        test.assertEqual(self.vector_scalar_1entries.size, 1)
-        test.assertEqual(self.vector_scalar_3entries.size, 3)
+#        test.assertEqual(self.vector_scalar_1entries.size, 1)
+#        test.assertEqual(self.vector_scalar_3entries.size, 3)
 
 #        test.assertEqual(self.vector_text_1entries.size, 1)
 #        test.assertEqual(self.vector_text_3entries.size, 3)
@@ -54,11 +57,11 @@ class NpArrayTestController(Sofa.Core.Controller):
         test.assertEqual(self.vector_Vec3_1entry.shape, (1,3))
         test.assertEqual(self.vector_Vec3_3entries.shape, (2,3))
 
-        test.assertEqual(self.vector_int_1entry.shape, (1,))
-        test.assertEqual(self.vector_int_3entries.shape, (3,))
+#        test.assertEqual(self.vector_int_1entry.shape, (1,))
+#        test.assertEqual(self.vector_int_3entries.shape, (3,))
 
-        test.assertEqual(self.vector_scalar_1entries.shape, (1,))
-        test.assertEqual(self.vector_scalar_3entries.shape, (3,))
+#        test.assertEqual(self.vector_scalar_1entries.shape, (1,))
+#        test.assertEqual(self.vector_scalar_3entries.shape, (3,))
 
 #        test.assertEqual(self.vector_text_1entries.shape, (1,))
 #        test.assertEqual(self.vector_text_3entries.shape, (3,))
@@ -67,11 +70,11 @@ class NpArrayTestController(Sofa.Core.Controller):
         test.assertEqual(self.vector_Vec3_1entry.ndim, 2)
         test.assertEqual(self.vector_Vec3_3entries.ndim, 2)
 
-        test.assertEqual(self.vector_int_1entry.ndim, 1)
-        test.assertEqual(self.vector_int_3entries.ndim, 1)
+#        test.assertEqual(self.vector_int_1entry.ndim, 1)
+#        test.assertEqual(self.vector_int_3entries.ndim, 1)
 
-        test.assertEqual(self.vector_scalar_1entries.ndim, 1)
-        test.assertEqual(self.vector_scalar_3entries.ndim, 1)
+#        test.assertEqual(self.vector_scalar_1entries.ndim, 1)
+#        test.assertEqual(self.vector_scalar_3entries.ndim, 1)
 
 #        test.assertEqual(self.vector_text_1entries.ndim, 1)
 #        test.assertEqual(self.vector_text_3entries.ndim, 1)
@@ -80,11 +83,11 @@ class NpArrayTestController(Sofa.Core.Controller):
         test.assertEqual(self.vector_Vec3_1entry.array(), np.array([[1,2,3]]) )
         test.assertEqual(self.vector_Vec3_3entries.array(), np.array([[1,2,3],[4,5,6],[7,8,9]]) )
 
-        test.assertEqual(self.vector_int_1entry.array(), np.array([1]) )
-        test.assertEqual(self.vector_int_3entries.array(), np.array([1,2,3]) )
+#        test.assertEqual(self.vector_int_1entry.array(), np.array([1]) )
+#        test.assertEqual(self.vector_int_3entries.array(), np.array([1,2,3]) )
 
-        test.assertEqual(self.vector_scalar_1entries.array(), np.array([1.0]))
-        test.assertEqual(self.vector_scalar_3entries.array(), np.array([1.0,2.0,3.0]))
+#        test.assertEqual(self.vector_scalar_1entries.array(), np.array([1.0]))
+#        test.assertEqual(self.vector_scalar_3entries.array(), np.array([1.0,2.0,3.0]))
 
 #        test.assertEqual(self.vector_text_1entries.array(), np.array(["v1"]))
 #        test.assertEqual(self.vector_text_3entries.array(), np.array(["v1","v2","v3"]))

@@ -268,6 +268,8 @@ py::buffer_info toBufferInfo(BaseData& m)
             format = py::format_descriptor<float>::value;
     }
 
+    std::cout << (nfo.Integer() ? "INTEGER" : (nfo.Scalar() ? "SCALAR" : "OTHER")) << std::endl;
+
     int rows = nfo.size(m.getValueVoidPtr()) / itemNfo->size();
     int cols = nfo.size();
     size_t datasize = nfo.byteSize();
@@ -441,6 +443,7 @@ void copyFromListScalar(BaseData& d, const AbstractTypeInfo& nfo, const py::list
 
     if(dstinfo.ndim==1)
     {
+        std::cout << "1D vector" << std::endl;
         void* ptr = d.beginEditVoidPtr();
 
         if( size_t(dstinfo.shape[0]) != l.size())
@@ -459,16 +462,26 @@ void copyFromListScalar(BaseData& d, const AbstractTypeInfo& nfo, const py::list
         d.endEditVoidPtr();
         return;
     }
+    std::cout << "2D vector. shape[0]:" << dstinfo.shape[0] << "list size: " << l.size() << std::endl;
     void* ptr = d.beginEditVoidPtr();
     if( size_t(dstinfo.shape[0]) != l.size())
-        nfo.setSize(ptr, l.size());
-
-    for(auto i=0;i<dstinfo.shape[0];++i)
     {
+        if (nfo.FixedSize())
+            std::cout << "This vector has a fixed size." << std::endl;
+        nfo.setSize(ptr, l.size());
+    }
+    std::cout << nfo.size() << std::endl;
+    std::cout << nfo.size(ptr) << std::endl;
+
+    for(auto i=0;i<l.size();++i)
+    {
+        std::cout << "i: " << i << std::endl;
         py::list ll = l[i];
-        for(auto j=0;j<dstinfo.shape[1];++j)
+        for(auto j=0;j<ll.size();++j)
         {
-            nfo.setScalarValue(ptr, i*dstinfo.shape[1]+j, py::cast<double>(ll[j]));
+            std::cout << "j: " << j << std::endl;
+            std::cout << "setting scalar value" << py::cast<double>(ll[j]) <<" in "<< d.getName() << std::endl;
+            nfo.setScalarValue(ptr, i*ll.size()+j, py::cast<double>(ll[j]));
         }
     }
     d.endEditVoidPtr();

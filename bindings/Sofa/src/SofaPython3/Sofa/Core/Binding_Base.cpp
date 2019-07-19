@@ -683,6 +683,7 @@ void moduleAddBase(py::module &m)
 
         if (value.is(py::none()))
         {
+            std::cout << "value is none. defaulting to whatever u've set as a default" << std::endl;
             if (py::isinstance<BaseData>(defaultValue))
             {
                 type = "";
@@ -729,6 +730,7 @@ void moduleAddBase(py::module &m)
             _addData(self, data, name);
             if (!value.is(py::none()))
             {
+                std::cout << "getting python value in data" << std::endl;
                 fromPython(data, value);
             }
         }
