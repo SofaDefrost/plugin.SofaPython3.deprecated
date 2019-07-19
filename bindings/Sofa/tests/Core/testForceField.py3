@@ -1,4 +1,4 @@
-from MyRestShapeForceField import MyRestShapeSpringsForcefield
+from MyRestShapeForceField import *
 
 
 def createIntegrationScheme(node, use_implicit_scheme):
@@ -27,9 +27,9 @@ def createDragon(node, node_name, use_implicit_scheme, use_iterative_solver):
         'MechanicalObject', name="DOFs")
     dragon.addObject('UniformMass', totalMass=1.0)
 
-    myRSSFF = MyRestShapeSpringsForcefield(name="Springs",
+    myRSSFF = NaiveRestShapeSpringsForcefield(name="Springs",
                                            stiffness=50,
-                                           mstate=dofs, rest_pos=dofs.rest_position)
+                                           mstate=dofs, rest_pos=dofs.rest_position, implementation="naive")
     dragon.addObject(myRSSFF)
 
     visu = dragon.addChild("Visu")
@@ -58,9 +58,9 @@ def createCube(node, node_name, use_implicit_scheme, use_iterative_solver):
     dofs = cube.addObject('MechanicalObject', name="DOFs", dy=20)
     cube.addObject('UniformMass', totalMass=1.0)
 
-    myRSSFF = MyRestShapeSpringsForcefield(name="Springs",
+    myRSSFF = NaiveRestShapeSpringsForcefield(name="Springs",
                                            stiffness=50,
-                                           mstate=dofs, rest_pos=dofs.rest_position)
+                                           mstate=dofs, rest_pos=dofs.rest_position, implementation="naive")
     cube.addObject(myRSSFF)
 
     visu = cube.addChild("Visu")
