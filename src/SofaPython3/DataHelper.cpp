@@ -405,7 +405,6 @@ py::object toPython(BaseData* d, bool writeable)
     {
         if(!writeable)
         {
-            return getPythonArrayFor(d);
             getPythonArrayFor(d);
             return getBindingDataFactoryInstance()->createObject("DataContainer", d);
         }
