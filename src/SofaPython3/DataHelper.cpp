@@ -403,18 +403,28 @@ py::object toPython(BaseData* d, bool writeable)
     /// we can expose the field as a numpy.array (no copy)
     if(nfo.Container() && nfo.SimpleLayout())
     {
-        if(!writeable)
-        {
-            getPythonArrayFor(d);
-            return getBindingDataFactoryInstance()->createObject("DataContainer", d);
-        }
-        return getPythonArrayFor(d);
+        if(writeable)
+            return getPythonArrayFor(d);
     }
-
-    std::cout << nfo.name() << " is not a container with a simple layout" << std::endl;
     /// If this is not the case we return the converted datas (copy)
     return convertToPython(d);
 }
+
+// const implementation. always returning readonly objects
+py::object toPython(const BaseData* d)
+{
+    const AbstractTypeInfo& nfo{ *(d->getValueTypeInfo()) };
+    /// In case the data is a container with a simple layout
+    /// we can expose the field as a numpy.array (no copy)
+    if(nfo.Container() && nfo.SimpleLayout())
+    {
+        getPythonArrayFor(const_cast<BaseData*>(d));
+        return getBindingDataFactoryInstance()->createObject("DataContainer", const_cast<BaseData*>(d));
+    }
+    /// If this is not the case we return the converted datas (copy)
+    return convertToPython(const_cast<BaseData*>(d));
+}
+
 
 void copyFromListScalar(BaseData& d, const AbstractTypeInfo& nfo, const py::list& l)
 {
@@ -428,25 +438,32 @@ void copyFromListScalar(BaseData& d, const AbstractTypeInfo& nfo, const py::list
     {
         void* ptr = d.beginEditVoidPtr();
 
-        if( (size_t)dstinfo.shape[0] != l.size())
+        if( size_t(dstinfo.shape[0]) != l.size())
             nfo.setSize(ptr, l.size());
-        for(size_t i=0;i<l.size();++i)
-        {
-            nfo.setScalarValue(ptr, i, py::cast<double>(l[i]));
-        }
+        if (nfo.Scalar())
+            for(size_t i = 0; i < l.size(); ++i)
+            {
+                nfo.setScalarValue(ptr, i, py::cast<double>(l[i]));
+            }
+        if (nfo.Integer())
+            for(size_t i = 0; i < l.size(); ++i)
+            {
+                nfo.setIntegerValue(ptr, i, py::cast<long long>(l[i]));
+            }
+
         d.endEditVoidPtr();
         return;
     }
     void* ptr = d.beginEditVoidPtr();
-    if( (size_t)dstinfo.shape[0] != l.size())
+    if( size_t(dstinfo.shape[0]) != l.size() && !nfo.FixedSize())
         nfo.setSize(ptr, l.size());
 
-    for(auto i=0;i<dstinfo.shape[0];++i)
+    for(size_t i = 0; i < l.size(); ++i)
     {
         py::list ll = l[i];
-        for(auto j=0;j<dstinfo.shape[1];++j)
+        for(size_t j = 0; j < ll.size(); ++j)
         {
-            nfo.setScalarValue(ptr, i*dstinfo.shape[1]+j, py::cast<double>(ll[j]));
+            nfo.setScalarValue(ptr, i*ll.size()+j, py::cast<double>(ll[j]));
         }
     }
     d.endEditVoidPtr();
@@ -468,7 +485,7 @@ void fromPython(BaseData* d, const py::object& o)
         return ;
     }
 
-    if(nfo.Scalar())
+    if(nfo.Scalar() || nfo.Integer())
         return copyFromListScalar(*d, nfo, o);
 
     msg_error("SofaPython3") << "binding problem, trying to set value for "
