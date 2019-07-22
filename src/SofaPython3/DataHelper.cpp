@@ -413,15 +413,6 @@ py::object toPython(BaseData* d, bool writeable)
 // const implementation. always returning readonly objects
 py::object toPython(const BaseData* d)
 {
-    const AbstractTypeInfo& nfo{ *(d->getValueTypeInfo()) };
-    /// In case the data is a container with a simple layout
-    /// we can expose the field as a numpy.array (no copy)
-    if(nfo.Container() && nfo.SimpleLayout())
-    {
-        getPythonArrayFor(const_cast<BaseData*>(d));
-        return getBindingDataFactoryInstance()->createObject("DataContainer", const_cast<BaseData*>(d));
-    }
-    /// If this is not the case we return the converted datas (copy)
     return convertToPython(const_cast<BaseData*>(d));
 }
 
