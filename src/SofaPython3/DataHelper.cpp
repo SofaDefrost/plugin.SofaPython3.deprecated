@@ -403,19 +403,17 @@ py::object toPython(BaseData* d, bool writeable)
     /// we can expose the field as a numpy.array (no copy)
     if(nfo.Container() && nfo.SimpleLayout())
     {
-        if(writeable)
+        if(!writeable)
+        {
             return getPythonArrayFor(d);
+            getPythonArrayFor(d);
+            return getBindingDataFactoryInstance()->createObject("DataContainer", d);
+        }
+        return getPythonArrayFor(d);
     }
     /// If this is not the case we return the converted datas (copy)
     return convertToPython(d);
 }
-
-// const implementation. always returning readonly objects
-py::object toPython(const BaseData* d)
-{
-    return convertToPython(const_cast<BaseData*>(d));
-}
-
 
 void copyFromListScalar(BaseData& d, const AbstractTypeInfo& nfo, const py::list& l)
 {
