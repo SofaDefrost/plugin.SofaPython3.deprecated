@@ -640,6 +640,7 @@ void _addData(Base* self, BaseData* data, const std::string& name)
         newData->setParent(data);
         newData->setName(name);
         self->addData(newData);
+        newData->update();
     }
 }
 
@@ -692,7 +693,7 @@ void moduleAddBase(py::module &m)
             isDefault = true;
         }
         // create the data from another data (use as parent)
-        if (type.empty() && py::isinstance<BaseData>(value))
+        if (py::isinstance<BaseData>(value))
         {
             data = deriveTypeFromParent(py::cast<BaseData*>(value));
             if (!data)

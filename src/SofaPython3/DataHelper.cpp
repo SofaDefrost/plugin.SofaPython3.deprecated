@@ -470,8 +470,6 @@ void copyFromListScalar(BaseData& d, const AbstractTypeInfo& nfo, const py::list
     {
         if (nfo.FixedSize())
             std::cout << "This vector has a fixed size." << std::endl;
-        if (nfo.BaseType()->FixedSize())
-            std::cout << "The vector's BaseType is not resizable!" << std::endl;
         /// This just doesn't work...
         nfo.setSize(ptr, l.size());
 
