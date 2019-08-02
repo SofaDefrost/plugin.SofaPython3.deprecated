@@ -125,6 +125,7 @@ py::object PythonFactory::toPython(sofa::core::objectmodel::BaseData* data)
 
     const sofa::defaulttype::AbstractTypeInfo& nfo { *(data->getValueTypeInfo()) };
 
+
     if(nfo.Container() && nfo.SimpleLayout())
     {
         s_dataDowncastingFct[metaclass->templateName] = s_dataDowncastingFct["DataContainer"];
@@ -269,6 +270,7 @@ void PythonFactory::fromPython(BaseData* d, const py::object& o)
      << d->getName() << ", " << py::cast<std::string>(py::str(o));
     throw std::runtime_error(s.str());
 }
+
 
 py::object PythonFactory::toPython(sofa::core::objectmodel::Event* event)
 {
