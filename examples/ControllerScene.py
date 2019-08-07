@@ -4,8 +4,6 @@ import Sofa.Core
 import Sofa.Simulation
 import SofaRuntime
 import os
-from splib import animation
-SofaRuntime.importPlugin("SofaOpenglVisual")
 
 _runAsPythonScript = False
 
@@ -46,7 +44,7 @@ def createScene(root):
     loader = root.addObject('MeshObjLoader', name='loader',
                             filename=rpath + "liver.obj")
     te = root.addObject(
-        "TransformEngine", name="te", input_position=loader.position.getLinkPath(), rotation=[42,12,22])
+        "TransformEngine", name="te", input_position=loader.position.getLinkPath(), rotation=[0,0,0])
     mo = root.addObject("MechanicalObject", name="mo",
                         position=te.output_position.getLinkPath())
 
@@ -73,7 +71,8 @@ def main():
     for i in range(0, 360):
         Sofa.Simulation.animate(root, root.dt.value)
         root.te.rotation[0] += 1
-        print("Pour i = "+ str(i)+", on a : "+str(root.te.rotation.value[0]))
+        #print("For i = "+ str(i)+", we have : "+str(root.te.rotation.value[0]))
+    print("Last value is : "+ str(root.te.rotation.value[0]))
 
 if __name__ == '__main__':
     main()
