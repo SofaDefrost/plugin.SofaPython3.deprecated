@@ -46,7 +46,7 @@ public:
     virtual void SOFAPYTHON3_API setInstance(py::object s);
 };
 
-template <typename T> class py_shared_ptr : public sofa::core::sptr<T>
+template <typename T> class SOFAPYTHON3_API py_shared_ptr : public sofa::core::sptr<T>
 {
 public:
     py_shared_ptr(T *ptr) : sofa::core::sptr<T>(ptr)
@@ -56,6 +56,31 @@ public:
             nptr->setInstance( py::cast(ptr) ) ;
     }
 };
+
+
+
+class SOFAPYTHON3_API PythonNonIntrusiveTrampoline
+{
+protected:
+    std::shared_ptr<PyObject> pyobject;
+public:
+    virtual ~PythonNonIntrusiveTrampoline();
+    virtual void SOFAPYTHON3_API setInstance(py::object s);
+};
+
+template <typename T> class SOFAPYTHON3_API py_non_intrusive_ptr : public std::shared_ptr<T>
+{
+public:
+    py_non_intrusive_ptr(T *ptr) : std::shared_ptr<T>(ptr)
+    {
+        auto nptr = dynamic_cast<PythonTrampoline*>(ptr);
+        if(nptr)
+            nptr->setInstance( py::cast(ptr) ) ;
+    }
+};
+
+
+
 
 void SOFAPYTHON3_API setItem2D(py::array a, py::slice slice, py::object o);
 void SOFAPYTHON3_API setItem2D(py::array a, const py::slice& slice,

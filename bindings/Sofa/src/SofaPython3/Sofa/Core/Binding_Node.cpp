@@ -33,6 +33,7 @@ using sofa::core::objectmodel::BaseObjectDescription;
 
 #include "Binding_Node_doc.h"
 #include "Binding_PythonScriptEvent.h"
+#include "Binding_Visitor.h"
 
 namespace sofapython3
 {
@@ -397,6 +398,13 @@ void sendEvent(Node* self, py::object pyUserData, char* eventName)
     self->propagateEvent(sofa::core::ExecParams::defaultInstance(), &event);
 }
 
+
+void execute(Node* self, sofa::simulation::Visitor* visitor)
+{
+    self->execute(visitor);
+}
+
+
 void moduleAddNode(py::module &m) {
     moduleAddBaseIterator(m);
 
@@ -441,6 +449,6 @@ void moduleAddNode(py::module &m) {
     p.def("getMechanicalState", &getMechanicalState, sofapython3::doc::sofa::core::Node::getMechanicalState);
     p.def("getMechanicalMapping", &getMechanicalMapping, sofapython3::doc::sofa::core::Node::getMechanicalMapping);
     p.def("sendEvent", &sendEvent, sofapython3::doc::sofa::core::Node::sendEvent);
-
+    p.def("execute", &execute, sofapython3::doc::sofa::core::Node::execute);
 }
 } /// namespace sofapython3

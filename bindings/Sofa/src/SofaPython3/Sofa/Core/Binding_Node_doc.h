@@ -314,6 +314,14 @@ static auto sendEvent =
         :type eventName: string
         )";
 
+static auto execute =
+        R"(
+        Executes a visitor over the given node.
+        The visitor will process each subnode in the scene graph from the node "self"
+        :param self: the node on which to execute the visitor
+        :param visitor: a visitor
+        )";
+
 }
 
 

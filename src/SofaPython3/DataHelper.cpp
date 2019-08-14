@@ -51,6 +51,22 @@ void PythonTrampoline::setInstance(py::object s)
 });
 }
 
+PythonNonIntrusiveTrampoline::~PythonNonIntrusiveTrampoline(){}
+void PythonNonIntrusiveTrampoline::setInstance(py::object s)
+{
+    s.inc_ref();
+
+    // TODO(bruno-marques) ici ça crash dans SOFA.
+    //--ref_counter;
+
+    pyobject = std::shared_ptr<PyObject>( s.ptr(), [](PyObject* ob)
+    {
+            // runSofa Sofa/tests/pyfiles/ScriptController.py => CRASH
+            // Py_DECREF(ob);
+});
+}
+
+
 std::ostream& operator<<(std::ostream& out, const py::buffer_info& p)
 {
     out << "buffer{"<< p.format << ", " << p.ndim << ", " << p.shape[0];
