@@ -71,8 +71,9 @@ namespace sofapython3
 ///
 /// It is possible to control if the function is throwing an exception when
 /// the provided name is not found in the 'self' object.
-py::object BindingBase::GetAttr(Base* self, const std::string& s, bool doThrowException)
+py::object BindingBase::GetAttr(py::object self, const std::string& s, bool doThrowException)
 {
+    Base* base = PythonFactory::cast<Base*>(self);
     /// I'm not sure implicit behavior is nice but we could do:
     ///    - The attribute is a data,
     ///         returns it if it is a container
@@ -81,7 +82,7 @@ py::object BindingBase::GetAttr(Base* self, const std::string& s, bool doThrowEx
     ///    - The attribute is an object or a child return it.
     ///    - The attribute is not existing:
     ///                raise an exception or search using difflib for close match.
-    if(self==nullptr)
+    if(self.is_none())
         throw py::attribute_error("Cannot get a Sofa attribute from None.");
 
     /// We are selecting first into data, then into link. Because
@@ -89,19 +90,19 @@ py::object BindingBase::GetAttr(Base* self, const std::string& s, bool doThrowEx
 
     /// Search if there is a data with the given name.
     /// If this is the case returns the corresponding python type.
-    if(BaseData* d = self->findData(s)){
+    if(BaseData* d = base->findData(s)){
         return PythonFactory::toPython(d);
     }
 
     /// Search if there is a link with the given name.
     /// If this is the case returns the corresponding python type.
-    if(BaseLink* l = self->findLink(s))
+    if(BaseLink* l = base->findLink(s))
         return py::cast(l->getLinkedBase());
 
     /// Search if we are quering for a 'magic' and private __data__ property
     /// this one allows to traverse all the data in the object
     if( s == "__data__")
-        return py::cast( DataDict(self) );
+        return py::cast( DataDict(base) );
 
     if(doThrowException)
         throw py::attribute_error("Missing attribute: "+s);
@@ -129,21 +130,10 @@ bool BindingBase::SetData(BaseData* d, py::object value)
 
 void BindingBase::SetAttr(py::object self, const std::string& s, py::object value)
 {
-    Base* self_d = py::cast<Base*>(self);
-    BaseData* d = self_d->findData(s);
+    Base* self_d = PythonFactory::cast<Base*>(self);
 
-    if(d!=nullptr)
-    {
-        SetData(d, value);
+    if (SetAttr(self_d, s, value))
         return;
-    }
-
-    BaseLink* l = self_d->findLink(s);
-    if(l!=nullptr)
-    {
-        return;
-    }
-
     /// We are falling back to dynamically adding the objet into the object dict.
     py::dict t = self.attr("__dict__");
     if(!t.is_none())
@@ -156,31 +146,21 @@ void BindingBase::SetAttr(py::object self, const std::string& s, py::object valu
     throw py::attribute_error("Unable to set attribute '"+s+"', unknow data type");
 }
 
-void BindingBase::SetAttr(Base& self, const std::string& s, py::object value)
+bool BindingBase::SetAttr(Base* self, const std::string& s, py::object value)
 {
-    BaseData* d = self.findData(s);
+    BaseData* d = self->findData(s);
 
     if(d!=nullptr)
     {
-        const AbstractTypeInfo& nfo{ *(d->getValueTypeInfo()) };
-
-        /// We go for the container path.
-        if(nfo.Container())
-        {
-            PythonFactory::fromPython(d,value);
-            return;
-        }
-        PythonFactory::fromPython(d, value);
-        return;
+        return SetData(d, value);
     }
 
-    BaseLink* l = self.findLink(s);
+    BaseLink* l = self->findLink(s);
     if(l!=nullptr)
     {
-        return;
+        return false; // @bmarques TODO: why is this not setting the link ?
     }
-
-    throw py::attribute_error(self.name.getValue() + " has no data field nor link named '" + s + "'");
+    return false;
 }
 
 void BindingBase::SetDataFromArray(BaseData* data, const py::array& value)
@@ -385,7 +365,7 @@ void checkAmbiguousCreation(Base* self, const std::string& name, const std::stri
 
 void checkAmbiguousCreation(py::object& py_self, const std::string& name, const std::string& type)
 {
-    Base* self = py::cast<Base*>(py_self);
+    Base* self = PythonFactory::cast<Base*>(py_self);
     checkAmbiguousCreation(dynamic_cast<BaseNode*>(self), name, type);
     checkAmbiguousCreation(dynamic_cast<BaseObject*>(self), name, type);
 
@@ -393,20 +373,20 @@ void checkAmbiguousCreation(py::object& py_self, const std::string& name, const 
         msg_warning(self) << "Ambiguous creation of " << type << " named '" << name << "' in " << self->getName() << ": Component alread has a python attribute with such name in __dict__";
 }
 
-py::list BindingBase::getDataFields(Base& self)
+py::list BindingBase::getDataFields(py::object self)
 {
     py::list list;
-    for(auto i : self.getDataFields())
+    for(auto i : PythonFactory::cast<Base*>(self)->getDataFields())
     {
         list.append(PythonFactory::toPython(i));
     }
     return list;
 }
 
-py::list BindingBase::getLinks(Base& self)
+py::list BindingBase::getLinks(py::object self)
 {
     py::list list;
-    for(auto i : self.getLinks())
+    for(auto i : PythonFactory::cast<Base*>(self)->getLinks())
     {
         list.append(i);
     }
@@ -415,7 +395,7 @@ py::list BindingBase::getLinks(Base& self)
 
 void BindingBase::addData(py::object py_self, const std::string& name, py::object value, py::object defaultValue, const std::string& help, const std::string& group, std::string type)
 {
-    Base* self = py::cast<Base*>(py_self);
+    Base* self = PythonFactory::cast<Base*>(py_self);
     if (isProtectedKeyword(name))
         throw py::value_error("addData: Cannot call addData with name " + name + ": Protected keyword");
     checkAmbiguousCreation(py_self, name, "data");
@@ -480,27 +460,28 @@ void BindingBase::addData(py::object py_self, const std::string& name, py::objec
 }
 
 
-void BindingBase::addDataFromData(Base* self, py::object d)
+void BindingBase::addDataFromData(py::object self, py::object d)
 {
+    Base* b = PythonFactory::cast<Base*>(self);
     BaseData* data = py::cast<BaseData*>(d);
     if (!data)
         throw py::type_error("Argument is not a Data!");
 
     if (data->getOwner() == nullptr)
-        self->addData(data, data->getName());
+        b->addData(data, data->getName());
     else
     {
         BaseData* newData = data->getNewInstance();
-        newData->setOwner(self);
+        newData->setOwner(b);
         newData->setParent(data);
         newData->setName(data->getName());
     }
 }
 
-py::list BindingBase::__dir__(Base* self)
+py::list BindingBase::__dir__(py::object self)
 {
     py::list list;
-    for(auto i : self->getDataFields())
+    for(auto i : PythonFactory::cast<Base*>(self)->getDataFields())
     {
         list.append(i->getName());
     }
@@ -509,7 +490,7 @@ py::list BindingBase::__dir__(Base* self)
 
 py::object BindingBase::__getattr__(py::object self, const std::string& s)
 {
-    py::object res = BindingBase::GetAttr( py::cast<Base*>(self), s, false );
+    py::object res = BindingBase::GetAttr(self, s, false );
     if( res.is_none() )
     {
         return self.attr("__dict__")[s.c_str()];
@@ -522,7 +503,7 @@ void BindingBase::__setattr__(py::object self, const std::string& s, py::object 
 {
     if(py::isinstance<DataContainer>(value))
     {
-        BaseData* data = py::cast<BaseData*>(value);
+        BaseData* data = PythonFactory::cast<BaseData*>(value);
         py::array a = getPythonArrayFor(data);
         BindingBase::SetAttrFromArray(self,s, a);
         return;
@@ -537,9 +518,9 @@ void BindingBase::__setattr__(py::object self, const std::string& s, py::object 
     BindingBase::SetAttr(self,s,value);
 }
 
-py::object BindingBase::getData(Base& self, const std::string& s)
+py::object BindingBase::getData(py::object self, const std::string& s)
 {
-    BaseData* d = self.findData(s);
+    BaseData* d = PythonFactory::cast<Base*>(self)->findData(s);
     if(d!=nullptr)
     {
         return py::cast(d);
@@ -552,8 +533,8 @@ void moduleAddBase(py::module &m)
     py::class_<Base, Base::SPtr> base(m, "Base", py::dynamic_attr(), doc::base::BaseClass);
     /// set & get the name as string. The alternative is to access the data field using
     /// obj.name.value = "aName"
-    base.def("getName", [](Base& b){ return b.getName(); }, sofapython3::doc::base::getName);
-    base.def("setName", [](Base& b, const std::string& s){ b.setName(s); }, sofapython3::doc::base::setName);
+    base.def("getName", [](py::object self){ return PythonFactory::cast<Base*>(self)->getName(); }, sofapython3::doc::base::getName);
+    base.def("setName", [](py::object self, const std::string& s){ PythonFactory::cast<Base*>(self)->setName(s); }, sofapython3::doc::base::setName);
     base.def("getClassName",&Base::getClassName, sofapython3::doc::base::getClassName);
     base.def("getTemplateName",&Base::getTemplateName, sofapython3::doc::base::getTemplateName);
     base.def("getClass", &Base::getClass, pybind11::return_value_policy::reference, sofapython3::doc::base::getClass);

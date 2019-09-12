@@ -56,24 +56,23 @@ using sofa::core::sptr;
 class BindingBase
 {
 public:
-    static void SetAttr(Base& self, const std::string& s, py::object value);
-
-    static void SetAttr(py::object self, const std::string& s, pybind11::object value);
-    static py::object GetAttr(Base* self, const std::string& s, bool doThrowException=true);
+    static void SetAttr(py::object self, const std::string& s, py::object value);
+    static bool SetAttr(Base* self, const std::string& s, py::object value);
+    static py::object GetAttr(py::object self, const std::string& s, bool doThrowException=true);
     static void SetAttrFromArray(py::object self, const std::string& s, const pybind11::array &value);
 
     /// Set the data field value from the array.
     static void SetDataFromArray(BaseData* data, const py::array& value);
     static bool SetData(BaseData* data, pybind11::object value);
 
-    static py::list getDataFields(Base& self);
-    static py::list getLinks(Base& self);
+    static py::list getDataFields(py::object self);
+    static py::list getLinks(py::object self);
     static void addData(py::object py_self, const std::string& name, py::object value = py::object(), py::object defaultValue = py::object(), const std::string& help = "", const std::string& group = "Property", std::string type = "");
-    static void addDataFromData(Base* self, py::object d);
-    static py::list __dir__(Base* self);
+    static void addDataFromData(py::object self, py::object d);
+    static py::list __dir__(py::object self);
     static py::object __getattr__(py::object self, const std::string& s);
     static void __setattr__(py::object self, const std::string& s, py::object value);
-    static py::object getData(Base& self, const std::string&);
+    static py::object getData(py::object self, const std::string&);
 };
 
 

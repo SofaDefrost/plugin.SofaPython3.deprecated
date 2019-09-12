@@ -146,7 +146,7 @@ namespace sofapython3
                       if( key == "name")
                           c->setName(py::cast<std::string>(kv.second));
                       try {
-                          BindingBase::SetAttr(*c, key, value);
+                          BindingBase::SetAttr(c, key, value);
                       } catch (py::attribute_error& /*e*/) {
                           /// kwargs are used to set datafields to their initial values,
                           /// but they can also be used as simple python attributes, unrelated to SOFA.

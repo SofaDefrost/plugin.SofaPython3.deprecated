@@ -66,6 +66,7 @@ using sofa::core::objectmodel::BaseObjectDescription;
 namespace sofapython3
 {
 
+namespace bindingnode {
 
 bool checkParamUsage(BaseObjectDescription& desc)
 {
@@ -274,20 +275,21 @@ NodeIterator* property_objects(Node* node)
 });
 }
 
-py::object __getattr__(Node& self, const std::string& name)
+py::object __getattr__(py::object self, const std::string& name)
 {
+    Node* node = PythonFactory::cast<Node*>(self);
     /// Search in the object lists
-    BaseObject *object = self.getObject(name);
+    BaseObject *object = node->getObject(name);
     if (object)
         return PythonFactory::toPython(object);
 
     /// Search in the child lists
-    Node *child = self.getChild(name);
+    Node *child = node->getChild(name);
     if (child)
         return PythonFactory::toPython(child);
 
     /// Search in the data & link lists
-    return BindingBase::GetAttr(&self, name, true);
+    return BindingBase::GetAttr(self, name, true);
 }
 
 /// gets an item using its path (path is dot-separated, relative to the object
@@ -378,6 +380,8 @@ void sendEvent(Node* self, py::object pyUserData, char* eventName)
     self->propagateEvent(sofa::core::ExecParams::defaultInstance(), &event);
 }
 
+}
+
 void moduleAddNode(py::module &m) {
     /// Register the complete parent-child relationship between Base and Node to the pybind11
     /// typing system.
@@ -403,37 +407,37 @@ void moduleAddNode(py::module &m) {
         return py::cast(static_cast<Node*>(object->toBaseNode()));
     });
 
-    p.def(py::init(&__init__noname), sofapython3::doc::sofa::core::Node::init);
-    p.def(py::init(&__init__), sofapython3::doc::sofa::core::Node::init1Arg, py::arg("name"));
-    p.def("init", &init, sofapython3::doc::sofa::core::Node::initSofa );
-    p.def("addObject", &addObjectKwargs, sofapython3::doc::sofa::core::Node::addObjectKwargs);
-    p.def("addObject", &addObject, sofapython3::doc::sofa::core::Node::addObject);
-    p.def("createObject", &createObject, sofapython3::doc::sofa::core::Node::createObject);
-    p.def("addChild", &addChildKwargs, sofapython3::doc::sofa::core::Node::addChildKwargs);
-    p.def("addChild", &addChild, sofapython3::doc::sofa::core::Node::addChild);
-    p.def("createChild", &createChild, sofapython3::doc::sofa::core::Node::createChild);
-    p.def("getChild", &getChild, sofapython3::doc::sofa::core::Node::getChild);
-    p.def("removeChild", &removeChild, sofapython3::doc::sofa::core::Node::removeChild);
-    p.def("removeChild", &removeChildByName, sofapython3::doc::sofa::core::Node::removeChildWithName);
+    p.def(py::init(&bindingnode::__init__noname), sofapython3::doc::sofa::core::Node::init);
+    p.def(py::init(&bindingnode::__init__), sofapython3::doc::sofa::core::Node::init1Arg, py::arg("name"));
+    p.def("init", &bindingnode::init, sofapython3::doc::sofa::core::Node::initSofa );
+    p.def("addObject", &bindingnode::addObjectKwargs, sofapython3::doc::sofa::core::Node::addObjectKwargs);
+    p.def("addObject", &bindingnode::addObject, sofapython3::doc::sofa::core::Node::addObject);
+    p.def("createObject", &bindingnode::createObject, sofapython3::doc::sofa::core::Node::createObject);
+    p.def("addChild", &bindingnode::addChildKwargs, sofapython3::doc::sofa::core::Node::addChildKwargs);
+    p.def("addChild", &bindingnode::addChild, sofapython3::doc::sofa::core::Node::addChild);
+    p.def("createChild", &bindingnode::createChild, sofapython3::doc::sofa::core::Node::createChild);
+    p.def("getChild", &bindingnode::getChild, sofapython3::doc::sofa::core::Node::getChild);
+    p.def("removeChild", &bindingnode::removeChild, sofapython3::doc::sofa::core::Node::removeChild);
+    p.def("removeChild", &bindingnode::removeChildByName, sofapython3::doc::sofa::core::Node::removeChildWithName);
     p.def("getRoot", &Node::getRoot, sofapython3::doc::sofa::core::Node::getRoot);
     p.def("getPathName", &Node::getPathName, sofapython3::doc::sofa::core::Node::getPathName);
-    p.def("getLinkPath", &getLinkPath, sofapython3::doc::sofa::core::Node::getLinkPath);
-    p.def_property_readonly("children", &property_children, sofapython3::doc::sofa::core::Node::children);
-    p.def_property_readonly("parents", &property_parents, sofapython3::doc::sofa::core::Node::parents);
-    p.def_property_readonly("objects", &property_objects, sofapython3::doc::sofa::core::Node::objects);
-    p.def("__getattr__", &__getattr__);
-    p.def("__getitem__", &__getitem__);
+    p.def("getLinkPath", &bindingnode::getLinkPath, sofapython3::doc::sofa::core::Node::getLinkPath);
+    p.def_property_readonly("children", &bindingnode::property_children, sofapython3::doc::sofa::core::Node::children);
+    p.def_property_readonly("parents", &bindingnode::property_parents, sofapython3::doc::sofa::core::Node::parents);
+    p.def_property_readonly("objects", &bindingnode::property_objects, sofapython3::doc::sofa::core::Node::objects);
+    p.def("__getattr__", &bindingnode::__getattr__);
+    p.def("__getitem__", &bindingnode::__getitem__);
     p.def("removeObject", &Node::removeObject, sofapython3::doc::sofa::core::Node::removeObject);
     p.def("getRootPath", &Node::getRootPath, sofapython3::doc::sofa::core::Node::getRootPath);
-    p.def("moveChild", &moveChild, sofapython3::doc::sofa::core::Node::moveChild);
+    p.def("moveChild", &bindingnode::moveChild, sofapython3::doc::sofa::core::Node::moveChild);
     p.def("isInitialized", &Node::isInitialized, sofapython3::doc::sofa::core::Node::isInitialized);
-    p.def("getAsACreateObjectParameter", &getLinkPath, sofapython3::doc::sofa::core::Node::getAsACreateObjectParameter);
+    p.def("getAsACreateObjectParameter", &bindingnode::getLinkPath, sofapython3::doc::sofa::core::Node::getAsACreateObjectParameter);
     p.def("detachFromGraph", &Node::detachFromGraph, sofapython3::doc::sofa::core::Node::detachFromGraph);
-    p.def("getMass", &getMass, sofapython3::doc::sofa::core::Node::getMass);
-    p.def("getForceField", &getForceField, sofapython3::doc::sofa::core::Node::getForceField);
-    p.def("getMechanicalState", &getMechanicalState, sofapython3::doc::sofa::core::Node::getMechanicalState);
-    p.def("getMechanicalMapping", &getMechanicalMapping, sofapython3::doc::sofa::core::Node::getMechanicalMapping);
-    p.def("sendEvent", &sendEvent, sofapython3::doc::sofa::core::Node::sendEvent);
+    p.def("getMass", &bindingnode::getMass, sofapython3::doc::sofa::core::Node::getMass);
+    p.def("getForceField", &bindingnode::getForceField, sofapython3::doc::sofa::core::Node::getForceField);
+    p.def("getMechanicalState", &bindingnode::getMechanicalState, sofapython3::doc::sofa::core::Node::getMechanicalState);
+    p.def("getMechanicalMapping", &bindingnode::getMechanicalMapping, sofapython3::doc::sofa::core::Node::getMechanicalMapping);
+    p.def("sendEvent", &bindingnode::sendEvent, sofapython3::doc::sofa::core::Node::sendEvent);
 
 }
 } /// namespace sofapython3

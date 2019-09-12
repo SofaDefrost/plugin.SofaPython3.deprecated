@@ -83,6 +83,14 @@ namespace sofapython3
             s_dataCreationFct[s] = [](){ return new sofa::core::objectmodel::Data<T>(); };
         }
 
+        template <class T>
+        static T SOFAPYTHON3_API cast(py::object& o) {
+            if (!py::isinstance<T>(o))
+                // @bmarques TODO: better error message, of course...
+                throw py::value_error("self does not inherit c++ Base instance. make sure you've called super in the initializer");
+            return py::cast<T>(o);
+        }
+
         static std::map<std::string, componentDowncastingFunction>::iterator SOFAPYTHON3_API searchLowestCastAvailable(const sofa::core::objectmodel::BaseClass* metaclass);
 
         static void SOFAPYTHON3_API uniqueKeys(std::back_insert_iterator<sofa::helper::vector<std::string> > it);
