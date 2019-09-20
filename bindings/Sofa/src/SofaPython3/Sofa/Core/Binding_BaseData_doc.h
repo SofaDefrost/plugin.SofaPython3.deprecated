@@ -135,6 +135,11 @@ static auto getParent =
         Return the parent data of this data.
         :rtype: BaseData
         )";
+static auto getGroup=
+        R"(
+        Return the group this data belongs to.
+        :rtype: string
+        )";
 static auto typeName =
         R"(
         Return the name of the type of the data.

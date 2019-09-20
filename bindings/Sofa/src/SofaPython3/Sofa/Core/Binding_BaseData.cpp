@@ -183,6 +183,7 @@ void moduleAddBaseData(py::module& m)
     data.def("unset", &BaseData::unset, sofapython3::doc::baseData::unset);
     data.def("getOwner", &BaseData::getOwner, sofapython3::doc::baseData::getOwner);
     data.def("getParent", &BaseData::getParent, sofapython3::doc::baseData::getParent);
+    data.def("getGroup", &BaseData::getGroup, sofapython3::doc::baseData::getGroup);
     data.def("typeName", [](BaseData& data){ return data.getValueTypeInfo()->name(); }, sofapython3::doc::baseData::typeName);
     data.def("getPathName", getPathName, sofapython3::doc::baseData::getPathName);
     data.def("getLinkPath", getLinkPath, sofapython3::doc::baseData::getLinkPath);
