@@ -124,7 +124,7 @@ PYBIND11_MODULE(SofaRuntime, m) {
     if( !SceneLoaderFactory::getInstance()->getEntryFileExtension("py3") )
     {
         SceneLoaderFactory::getInstance()->addEntry(new SceneLoaderPY3());
-        sofa::helper::BackTrace::autodump();
+//        sofa::helper::BackTrace::autodump();  // We don't want to catch SIGINT in the python interpreter
     }
 
     m.def("importPlugin", [](const std::string& name)
