@@ -179,11 +179,13 @@ void moduleAddBaseData(py::module& m)
     data.def("getName", [](BaseData& b){ return b.getName(); }, sofapython3::doc::baseData::getName);
     data.def("setName", [](BaseData& b, const std::string& s){ b.setName(s); }, sofapython3::doc::baseData::setName);
     data.def("getCounter", [](BaseData& self) { return self.getCounter(); }, sofapython3::doc::baseData::getCounter);
-    data.def("getHelp", &BaseData::getHelp, sofapython3::doc::baseData::getHelp);
+    data.def("getHelp", [](BaseData& b){ return b.getHelp(); }, sofapython3::doc::baseData::getHelp);
+    data.def("setHelp", [](BaseData& b, const std::string& helpmsg){ b.setHelp(helpmsg); }, sofapython3::doc::baseData::setHelp);
     data.def("unset", &BaseData::unset, sofapython3::doc::baseData::unset);
     data.def("getOwner", &BaseData::getOwner, sofapython3::doc::baseData::getOwner);
     data.def("getParent", &BaseData::getParent, sofapython3::doc::baseData::getParent);
-    data.def("getGroup", &BaseData::getGroup, sofapython3::doc::baseData::getGroup);
+    data.def("getGroup", [](BaseData& b){ return b.getGroup(); }, sofapython3::doc::baseData::getGroup);
+    data.def("setGroup", [](BaseData& b, const std::string& groupname){ b.setGroup(groupname); }, sofapython3::doc::baseData::setGroup);
     data.def("typeName", [](BaseData& data){ return data.getValueTypeInfo()->name(); }, sofapython3::doc::baseData::typeName);
     data.def("getPathName", getPathName, sofapython3::doc::baseData::getPathName);
     data.def("getLinkPath", getLinkPath, sofapython3::doc::baseData::getLinkPath);

@@ -121,6 +121,11 @@ static auto getHelp =
         Get the help message.
         :rtype: string
         )";
+static auto setHelp =
+        R"(
+        Sets the help message.
+        :rtype: None
+        )";
 static auto unset =
         R"(
         Reset the isSet flag to false, to indicate that the current value is the default for this data.
@@ -139,6 +144,11 @@ static auto getGroup=
         R"(
         Return the group this data belongs to.
         :rtype: string
+        )";
+static auto setGroup=
+        R"(
+        sets the group this data belongs to.
+        :rtype: None
         )";
 static auto typeName =
         R"(
