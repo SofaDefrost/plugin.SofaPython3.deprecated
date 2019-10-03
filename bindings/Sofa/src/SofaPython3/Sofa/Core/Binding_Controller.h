@@ -46,6 +46,7 @@ public:
     SOFA_CLASS(Controller, BaseController);
     void init() override ;
     void reinit() override;
+    void bwdInit() override;
 
     Controller();
     ~Controller() override;

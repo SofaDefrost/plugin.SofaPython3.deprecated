@@ -46,6 +46,10 @@ namespace sofapython3
 
     void Controller::reinit() {
     }
+    
+    void Controller::bwdInit() {
+        
+    }
 
     Controller::Controller() {
     }
@@ -66,6 +70,7 @@ namespace sofapython3
         }
 
         void init() override ;
+        void bwdInit() override ;
         void reinit() override ;
         void handleEvent(Event* event) override ;
 
@@ -77,6 +82,11 @@ namespace sofapython3
     void Controller_Trampoline::init()
     {
         PYBIND11_OVERLOAD(void, Controller, init, );
+    }
+
+    void Controller_Trampoline::bwdInit()
+    {
+        PYBIND11_OVERLOAD(void, Controller, bwdInit, );
     }
 
     void Controller_Trampoline::reinit()
@@ -158,6 +168,7 @@ namespace sofapython3
 
         f.def("init", &Controller::init);
         f.def("reinit", &Controller::reinit);
+        f.def("bwdInit", &Controller::bwdInit);
     }
 
 
