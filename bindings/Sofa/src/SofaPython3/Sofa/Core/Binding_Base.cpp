@@ -465,7 +465,7 @@ BaseData* BindingBase::addData(py::object py_self, const std::string& name, py::
                 typesString += i + ", ";
             typesString += "\b\b]";
 
-            throw py::type_error(std::string("Invalid Type string: available types are\n") + typesString);
+            throw py::type_error(std::string("Invalid Type '"+type+"': available types are\n") + typesString);
         }
         self->addData(data, name);
         PythonFactory::fromPython(data, value);
