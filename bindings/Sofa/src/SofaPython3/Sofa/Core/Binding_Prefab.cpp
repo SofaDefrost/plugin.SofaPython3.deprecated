@@ -52,10 +52,54 @@ using sofa::simulation::VisualInitVisitor;
 
 #include <sofa/simulation/Simulation.h>
 using sofa::simulation::Simulation;
+using sofa::simulation::Node;
+
+#include <sofa/simulation/MutationListener.h>
+using sofa::simulation::MutationListener;
 
 namespace sofapython3
 {
 using sofa::core::objectmodel::Event;
+
+void forwardEvent(Node *parent, Node *child, const std::string& evtName)
+{
+    PythonEnvironment::gil acquire;
+
+    py::object self = py::cast(parent);
+    /// Is there a method with this name in the class ?
+    if( py::hasattr(self, evtName.c_str()) )
+    {
+        py::object fct = self.attr(evtName.c_str());
+        /// Call the matching event in the funcVector & pass it the given event
+        fct(PythonFactory::toPython(parent), PythonFactory::toPython(child));
+    }
+}
+
+void forwardEvent(Node *parent, BaseObject *child, const std::string& evtName){
+    PythonEnvironment::gil acquire;
+
+    py::object self = py::cast(parent);
+    /// Is there a method with this name in the class ?
+    if( py::hasattr(self, evtName.c_str()) )
+    {
+        py::object fct = self.attr(evtName.c_str());
+        /// Call the matching event in the funcVector & pass it the given event
+        fct(PythonFactory::toPython(parent), PythonFactory::toPython(child));
+    }
+}
+
+
+void PrefabMutationListener::onEndAddChild(Node *parent, Node *child)
+{   forwardEvent(parent, child, "onEndAddChild"); }
+
+void PrefabMutationListener::onEndRemoveChild(Node *parent, Node *child)
+{   forwardEvent(parent, child, "onEndRemoveChild"); }
+
+void PrefabMutationListener::onEndAddObject(Node *parent, BaseObject *object)
+{   forwardEvent(parent, object, "onEndAddObject"); }
+
+void PrefabMutationListener::onEndRemoveObject(Node *parent, BaseObject *object)
+{   forwardEvent(parent, object, "onEndRemoveObject"); }
 
 void Prefab::init()
 {
@@ -100,8 +144,14 @@ void Prefab::doReInit()
 
 Prefab::Prefab()
 {
+    /// The file listener is used to detect when the file is canged
     m_filelistener.m_prefab = this;
+
+    /// In case of change we call reinit
     m_datacallback.addCallback( std::bind(&Prefab::reinit, this) );
+
+    /// The mutation listener is there to detect when nodes are added/remove
+    //addListener(&m_mutationListener);
 }
 
 
@@ -180,7 +230,7 @@ void moduleAddPrefab(py::module &m) {
                   std::cout << "PREFAB ARE BROKEN " << key << std::endl;
 
                   if( key == "name")
-                      c->setName(py::cast<std::string>(kv.second));
+                  c->setName(py::cast<std::string>(kv.second));
                   try {
                       BindingBase::SetAttr(*c, key, value);
                   } catch (py::attribute_error& /*e*/) {

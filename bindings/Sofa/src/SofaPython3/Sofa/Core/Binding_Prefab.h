@@ -51,6 +51,8 @@ namespace sofapython3
 using sofa::simulation::graph::DAGNode;
 using sofa::core::objectmodel::BasePrefab;
 using sofa::core::objectmodel::DataCallback;
+using sofa::simulation::MutationListener;
+using sofa::simulation::Node;
 
 class Prefab;
 class PrefabFileEventListener : public sofa::helper::system::FileEventListener
@@ -59,6 +61,16 @@ public:
     Prefab* m_prefab;
 
     void fileHasChanged(const std::string& filename) override;
+};
+
+
+class PrefabMutationListener : public MutationListener
+{
+public:
+    void onEndAddChild(Node *parent, Node *child) override;
+    void onEndRemoveChild(Node *parent, Node *child) override;
+    void onEndAddObject(Node *parent, BaseObject *object) override;
+    void onEndRemoveObject(Node *parent, BaseObject *object) override;
 };
 
 class Prefab : public BasePrefab
@@ -75,6 +87,7 @@ public:
     Prefab();
     ~Prefab() override;
 
+    PrefabMutationListener m_mutationListener;
     PrefabFileEventListener m_filelistener;
     DataCallback m_datacallback;
 };
