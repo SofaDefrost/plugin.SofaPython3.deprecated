@@ -195,6 +195,9 @@ void PythonEnvironment::Init()
     }
 
     PyEval_InitThreads();
+    static const PyThreadState* init = PyEval_SaveThread();
+    (void) init;
+
     gil lock;
 
     // Required for sys.path, used in addPythonModulePath().
@@ -485,8 +488,14 @@ void PythonEnvironment::excludeModuleFromReload( const std::string& moduleName )
 
 static const bool debug_gil = false;
 static PyGILState_STATE lock(const char* trace) {
-    if(debug_gil && trace) {
-        std::clog << ">> " << trace << " wants the gil" << std::endl;
+    if(debug_gil) {
+        auto tid = PyGILState_GetThisThreadState()->thread_id % 10000;
+        auto id = PyGILState_GetThisThreadState()->id;
+
+        if(trace)
+            std::clog << ">> ["<<id << "(" << tid  <<")]:: " << trace<< " wants the gil" << std::endl;
+        else
+            std::clog << ">> ["<<id << "(" << tid  <<")]:: wants the gil" << std::endl;
     }
 
     // this ensures that we start with no active thread before first locking the
@@ -494,9 +503,11 @@ static PyGILState_STATE lock(const char* trace) {
     // the main thread still holds the gil, preventing python threads to run
     // until the main thread exits).
 
+    //TODO(dmarchal) This code should not be here...should be in the environment.
     // the first gil aquisition should happen right after the python interpreter
     // is initialized.
-    static const PyThreadState* init = PyEval_SaveThread(); (void) init;
+    //static const PyThreadState* init = PyEval_SaveThread(); (void) init;
+
 
     return PyGILState_Ensure();
 }
@@ -506,12 +517,23 @@ PythonEnvironment::gil::gil(const char* trace)
       trace(trace) { }
 
 
-PythonEnvironment::gil::~gil() {
+PythonEnvironment::gil::~gil()
+{
+    auto tid = PyGILState_GetThisThreadState()->thread_id % 10000;
+    auto id = PyGILState_GetThisThreadState()->id;
+    if(debug_gil) {
+        if(trace)
+            std::clog << "<< ["<<id << "(" << tid  <<")]: " << trace << " prepare to released the gil" << std::endl;
+        else
+            std::clog << "<< ["<<id << "(" << tid  <<")]:: prepare to released the gil" << std::endl;
+    }
 
     PyGILState_Release(state);
-
-    if(debug_gil && trace) {
-        std::clog << "<< " << trace << " released the gil" << std::endl;
+    if(debug_gil) {
+        if(trace)
+            std::clog << "<< ["<<id << "(" << tid  <<")]: " << trace << " released the gil" << std::endl;
+        else
+            std::clog << "<< ["<<id << "(" << tid  <<")]: released the gil" << std::endl;
     }
 
 }

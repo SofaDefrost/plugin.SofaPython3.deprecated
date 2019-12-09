@@ -46,7 +46,11 @@ void moduleAddSimulation(py::module &m)
 
   py::module singleRuntime = m.def_submodule("Simulation");
   singleRuntime.def("print", [](Node* n){ sofa::simulation::getSimulation()->print(n); });
-  singleRuntime.def("animate", [](Node* n, SReal dt=0.0){ sofa::simulation::getSimulation()->animate(n, dt); });
+  singleRuntime.def("animate", [](Node* n, SReal dt=0.0){
+      std::cout << "Simulation.animate begin at: "  << std::endl;
+      sofa::simulation::getSimulation()->animate(n, dt); }
+      std::cout << "Simulation.animate end " << std::endl;
+  );
   singleRuntime.def("init", [](Node* n){ sofa::simulation::getSimulation()->init(n); });
   singleRuntime.def("reset", [](Node* n){ sofa::simulation::getSimulation()->reset(n); });
   singleRuntime.def("load", [](const std::string name){ return sofa::simulation::getSimulation()->load(name.c_str());});

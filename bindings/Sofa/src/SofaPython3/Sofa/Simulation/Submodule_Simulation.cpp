@@ -43,6 +43,8 @@ using sofa::simulation::Simulation;
 #include <sofa/core/visual/DrawToolGL.h>
 #include "Submodule_Simulation_doc.h"
 
+#include <SofaPython3/PythonEnvironment.h>
+
 namespace sofapython3
 {
 
@@ -54,7 +56,12 @@ PYBIND11_MODULE(Simulation, simulation)
     simulation.doc() =sofapython3::doc::simulation::Class;
 
     simulation.def("print", [](Node* n){ sofa::simulation::getSimulation()->print(n); }, sofapython3::doc::simulation::print);
-    simulation.def("animate", [](Node* n, SReal dt=0.0){ sofa::simulation::getSimulation()->animate(n, dt); },sofapython3::doc::simulation::animate);
+    simulation.def("animate", [](Node* n, SReal dt=0.0){
+//        PythonEnvironment::no_gil {"Simulation_animate"};
+//        std::cout << "ANIMATE BEGIN" << n->getName() << std::endl;
+        sofa::simulation::getSimulation()->animate(n, dt);
+//        std::cout << "ANIMATE END" << n->getName() << std::endl;
+    },sofapython3::doc::simulation::animate);
     simulation.def("init", [](Node* n){ sofa::simulation::getSimulation()->init(n); }, sofapython3::doc::simulation::init);
     simulation.def("reset", [](Node* n){ sofa::simulation::getSimulation()->reset(n); }, sofapython3::doc::simulation::reset);
     simulation.def("load", [](const std::string name){ return sofa::simulation::getSimulation()->load(name.c_str());}, sofapython3::doc::simulation::load);

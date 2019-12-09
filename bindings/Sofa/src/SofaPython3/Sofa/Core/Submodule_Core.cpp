@@ -52,7 +52,9 @@ along with sofaqtquick. If not, see <http://www.gnu.org/licenses/>.
 
 #include "Submodule_Core.h"
 
+#include <SofaPython3/PythonEnvironment.h>
 
+#include <pybind11/embed.h>
 
 namespace sofapython3
 {
