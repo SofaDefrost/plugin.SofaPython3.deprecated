@@ -29,12 +29,9 @@ class MyController(Sofa.Core.Controller):
                 
 root = Sofa.Core.Node("myroot")
 root.addChild("child1")
-print('plip')
 root.addObject(MyController(name="MyController"))
-print('plap')
 Sofa.Simulation.print(root)
 Sofa.Simulation.init(root)
-print('plop')
 for i in range(0, 10):
         print("step: "+str(i))
         Sofa.Simulation.animate(root, 0.1)
