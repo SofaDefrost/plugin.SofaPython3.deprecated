@@ -27,32 +27,48 @@ along with sofaqtquick. If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "Binding_BaseObject.h"
-
-#include <sofa/core/behavior/BaseController.h>
-
-template class pybind11::class_<sofa::core::behavior::BaseController,
-                          sofa::core::objectmodel::BaseObject,
-                          sofa::core::sptr<sofa::core::behavior::BaseController>>;
+#include <pybind11/pybind11.h>
+#include <sofa/core/visual/VisualParams.h>
 
 
 namespace sofapython3
 {
-using sofa::core::behavior::BaseController;
+namespace py { using namespace pybind11; }
 
-class Controller : public BaseController
+using sofa::core::visual::VisualParams;
+using sofa::defaulttype::Vec3d;
+
+class VisualContext
 {
 public:
-    SOFA_CLASS(Controller, BaseController);
-    void init() override ;
-    void reinit() override;
-    void draw(const sofa::core::visual::VisualParams* params) override;
+    VisualContext();
+    virtual ~VisualContext();
+    const sofa::core::visual::VisualParams* m_currentParams;
 
-    Controller();
-    ~Controller() override;
+    void enter(){}
+    void exit(){ m_currentParams = nullptr; }
 };
 
-void moduleAddController(py::module &m);
+template<class T>
+class ContextManager
+{
+public:
+    T m_context;
+    ContextManager(T context)
+    {
+        m_context = context;
+        m_context->enter();
+    }
+
+    ~ContextManager()
+    {
+        m_context->exit();
+    }
+};
+
+void moduleAddVisualParams(py::module &m);
 
 } /// namespace sofapython3
+
+template class pybind11::class_<sofapython3::VisualContext, std::shared_ptr<sofapython3::VisualContext>>;
 

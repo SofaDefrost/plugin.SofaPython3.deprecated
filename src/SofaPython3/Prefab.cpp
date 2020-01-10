@@ -15,6 +15,9 @@ using sofa::simulation::VisualInitVisitor;
 #include <sofa/simulation/Simulation.h>
 using sofa::simulation::Simulation;
 
+#include <sofa/simulation/MutationListener.h>
+using sofa::simulation::MutationListener;
+
 namespace sofapython3
 {
 using sofa::core::objectmodel::Event;
@@ -65,10 +68,19 @@ void Prefab::doReInit()
 {
 }
 
+class MyMutationListener : public MutationListener
+{
+public:
+    void onBeginAddChild(Node*, Node*) override
+    {
+    }
+};
+
 Prefab::Prefab()
 {
     m_filelistener.m_prefab = this;
     m_datacallback.addCallback( std::bind(&Prefab::reinit, this) );
+    addListener(new MyMutationListener());
 }
 
 

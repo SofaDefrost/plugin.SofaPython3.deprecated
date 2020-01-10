@@ -415,7 +415,8 @@ py::array resetArrayFor(BaseData* d)
 py::array getPythonArrayFor(BaseData* d)
 {
     auto& memcache = getObjectCache();
-    if(memcache.find(d) == memcache.end())
+    auto entry = memcache.find(d);
+    if(entry == memcache.end())
     {
         auto capsule = py::capsule(new Base::SPtr(d->getOwner()));
 
@@ -425,6 +426,13 @@ py::array getPythonArrayFor(BaseData* d)
 
         memcache[d] = a;
         return a;
+    }
+    const AbstractTypeInfo& nfo { *d->getValueTypeInfo() };
+    void* ptr = const_cast<void*>(nfo.getValuePtr(d->getValueVoidPtr()));
+    if(entry->second.data() != ptr)
+    {
+        std::cout << "RESTORE CACHE FOR " << d->getName() << std::endl;
+        resetArrayFor(d);
     }
     return memcache[d];
 }
@@ -536,6 +544,7 @@ BaseData* addData(py::object py_self, const std::string& name, py::object value,
     if (isProtectedKeyword(name))
         throw py::value_error("addData: Cannot call addData with name " + name + ": Protected keyword");
     checkAmbiguousCreation(py_self, name, "data");
+
     BaseData* data;
 
     bool isSet = true;
@@ -592,6 +601,7 @@ BaseData* addData(py::object py_self, const std::string& name, py::object value,
     data->setHelp(help.c_str());
     data->setDisplayed(true);
     data->setPersistent(true);
+    data->setOwner(self);
     if (!isSet)
         data->unset();
     return data;

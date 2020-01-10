@@ -237,6 +237,7 @@ void copyFromListOf(BaseData& d, const AbstractTypeInfo& nfo, const py::list& l)
         dstinfo = toBufferInfo(d);
     }
 
+
     for(auto i=0;i<dstinfo.shape[0];++i)
     {
         py::list ll = l[size_t(i)];
@@ -245,7 +246,6 @@ void copyFromListOf(BaseData& d, const AbstractTypeInfo& nfo, const py::list& l)
             copyFromListOf<DestType>(nfo, ptr, size_t(i*dstinfo.shape[1]+j), ll[size_t(j)]);
         }
     }
-
     d.endEditVoidPtr();
     return;
 }
@@ -279,6 +279,23 @@ void PythonFactory::fromPython(BaseData* d, const py::object& o)
             nfo.setTextValue(guard.ptr, 0, py::cast<py::str>(o));
         else if(nfo.Scalar())
             nfo.setScalarValue(guard.ptr, 0, py::cast<double>(o));
+        else if(auto tmp = dynamic_cast<sofa::core::objectmodel::Data<py::object>*>(d))
+        {
+            std::string t = py::str(o);
+            o.inc_ref();
+            tmp->setValue(o);
+        }
+        else if(auto tmp = dynamic_cast<sofa::core::objectmodel::Data<sofa::core::objectmodel::ComponentState>*>(d))
+        {
+            tmp->setValue(sofa::core::objectmodel::ComponentState::Valid);
+        }
+        else
+        {
+            std::stringstream s;
+            s<< "binding problem, trying to set value for "
+             << d->getName() << ", " << py::cast<std::string>(py::str(o));
+            throw std::runtime_error(s.str());
+        }
         return ;
     }
 
@@ -286,9 +303,7 @@ void PythonFactory::fromPython(BaseData* d, const py::object& o)
         return copyFromListOf<int>(*d, nfo, o);
 
     if(nfo.Text())
-    {
         return copyFromListOf<std::string>(*d, nfo, o);
-    }
 
     if(nfo.Scalar())
         return copyFromListOf<double>(*d, nfo, o);
@@ -299,6 +314,10 @@ void PythonFactory::fromPython(BaseData* d, const py::object& o)
     throw std::runtime_error(s.str());
 }
 
+py::object PythonFactory::toPython(const sofa::core::visual::VisualParams *params)
+{
+    return py::cast(params);
+}
 
 py::object PythonFactory::toPython(sofa::core::objectmodel::Event* event)
 {
@@ -334,7 +353,7 @@ sofa::core::objectmodel::BaseData* PythonFactory::createInstance(const std::stri
 
 bool PythonFactory::registerDefaultEvents()
 {
-//    s_eventDowncastingFct = std::map<std::string, eventDowncastingFunction>();
+    //    s_eventDowncastingFct = std::map<std::string, eventDowncastingFunction>();
 
     AnimateBeginEvent abe(.0);
     s_eventDowncastingFct[std::string(abe.getClassName())] = [] (Event* event) -> py::dict {

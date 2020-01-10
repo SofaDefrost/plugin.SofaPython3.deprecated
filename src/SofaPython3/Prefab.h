@@ -20,7 +20,9 @@ namespace sofapython3
 {
 using sofa::simulation::graph::DAGNode;
 using sofa::core::objectmodel::BasePrefab;
+using sofa::core::objectmodel::BaseObject;
 using sofa::core::objectmodel::DataCallback;
+using sofa::simulation::Node;
 
 class Prefab;
 class SOFAPYTHON3_API PrefabFileEventListener : public sofa::helper::system::FileEventListener

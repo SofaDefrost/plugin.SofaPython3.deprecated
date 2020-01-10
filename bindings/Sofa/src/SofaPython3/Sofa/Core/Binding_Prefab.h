@@ -34,13 +34,13 @@ along with sofaqtquick. If not, see <http://www.gnu.org/licenses/>.
 #include <sofa/helper/system/FileMonitor.h>
 #include <SofaPython3/Prefab.h>
 
-
 template class pybind11::class_<sofa::core::objectmodel::BasePrefab,
                                 sofa::simulation::graph::DAGNode,
                                 sofa::core::sptr<sofa::core::objectmodel::BasePrefab>>;
 
 namespace sofapython3
 {
+
 
 void moduleAddPrefab(py::module &m);
 

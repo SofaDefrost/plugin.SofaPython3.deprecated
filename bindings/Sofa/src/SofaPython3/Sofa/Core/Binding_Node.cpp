@@ -199,27 +199,31 @@ py::object addObjectKwargs(Node* self, const std::string& type, const py::kwargs
     return PythonFactory::toPython(object.get());
 }
 
-/// Implement the addObject function.
-py::object addKwargs(Node* self, const py::object& callable, const py::kwargs& kwargs)
+/// Implement the generic add function.
+/// Use cases:
+///    - node.add(anObject)
+///    - node.add(aNode)
+///    - node.add(callableReturningABaseObject)
+///    - node.add(callableReturningABaseNode)
+py::object addKwargs(Node* self, const py::object& firstArgs, const py::kwargs& kwargs)
 {
-    if(py::isinstance<BaseObject*>(callable))
+    if(py::isinstance<BaseObject>(firstArgs))
     {
-        BaseObject* obj = py::cast<BaseObject*>(callable);
-
-        self->addObject(obj);    
+        BaseObject* obj = py::cast<BaseObject*>(firstArgs);
+        self->addObject(obj);
         return py::cast(obj);
     }
 
-    if(py::isinstance<Node*>(callable))
+    if(py::isinstance<Node>(firstArgs))
     {
-        Node* node = py::cast<Node*>(callable);
+        Node* node = py::cast<Node*>(firstArgs);
         self->addChild(node);
         return py::cast(node);
     }
 
-    if(py::isinstance<py::str>(callable))
+    if(py::isinstance<py::str>(firstArgs))
     {
-        py::str type = callable;
+        py::str type = firstArgs;
         return addObjectKwargs(self, type, kwargs);
     }
 
@@ -227,11 +231,15 @@ py::object addKwargs(Node* self, const py::object& callable, const py::kwargs& k
     {
         std::string name = py::str(kwargs["name"]);
         if (sofapython3::isProtectedKeyword(name))
-            throw py::value_error("addObject: Cannot call addObject with name " + name + ": Protected keyword");
+            throw py::value_error("add: Cannot call function with name " + name + ": Protected keyword");
     }
 
-    auto c = callable(self, **kwargs);
+    auto c = firstArgs(**kwargs);
     Base* base = py::cast<Base*>(c);
+    if(base == nullptr)
+        throw py::value_error("Missing return type from the callable: "+std::string(py::str(c)));
+
+    /// Set all the data passed as arguments.
     for(auto a : kwargs)
     {
         BaseData* d = base->findData(py::cast<std::string>(a.first));
@@ -239,7 +247,19 @@ py::object addKwargs(Node* self, const py::object& callable, const py::kwargs& k
             d->setPersistent(true);
     }
 
-    return c;
+    if(py::isinstance<BaseObject>(c))
+    {
+        BaseObject* baseobject = py::cast<BaseObject*>(c);
+        self->addObject(baseobject);
+        return c;
+    }
+    if(py::isinstance<Node>(c))
+    {
+        Node* basenode = py::cast<Node*>(c);
+        self->addChild(basenode);
+        return c;
+    }
+    throw py::value_error("Invalid return type from the callable: "+std::string(py::str(c)));
 }
 
 

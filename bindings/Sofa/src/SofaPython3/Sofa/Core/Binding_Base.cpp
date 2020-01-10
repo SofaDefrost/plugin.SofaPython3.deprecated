@@ -130,8 +130,8 @@ bool BindingBase::SetData(BaseData* d, py::object value)
 void BindingBase::SetAttr(py::object self, const std::string& s, py::object value)
 {
     Base* self_d = py::cast<Base*>(self);
-    BaseData* d = self_d->findData(s);
 
+    BaseData* d = self_d->findData(s);
     if(d!=nullptr)
     {
         SetData(d, value);

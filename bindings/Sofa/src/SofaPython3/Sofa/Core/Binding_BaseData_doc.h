@@ -267,4 +267,8 @@ static auto getValueVoidPtr =
         R"(
         Get a constant void pointer to the value held in this data.
         )";
+static auto connect =
+        R"(
+        Connect a datafield to other through a callback function.
+        )";
 }

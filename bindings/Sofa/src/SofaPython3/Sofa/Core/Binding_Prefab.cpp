@@ -50,6 +50,70 @@ using sofa::simulation::Simulation;
 
 namespace sofapython3
 {
+using sofa::simulation::MutationListener;
+
+class PrefabMutationListener : public MutationListener
+{
+public:
+    void onBeginAddChild(Node *parent, Node *child) override;
+    void onEndAddChild(Node *parent, Node *child) override;
+    void onEndRemoveChild(Node *parent, Node *child) override;
+    void onEndAddObject(Node *parent, BaseObject *object) override;
+    void onEndRemoveObject(Node *parent, BaseObject *object) override;
+};
+
+void forwardEvent(Node *parent, Node *child, const std::string& evtName)
+{
+    PythonEnvironment::gil acquire;
+
+    py::object self = py::cast(parent);
+    /// Is there a method with this name in the class ?
+    if( py::hasattr(self, evtName.c_str()) )
+    {
+        py::object fct = self.attr(evtName.c_str());
+        /// Call the matching event in the funcVector & pass it the given event
+        fct(PythonFactory::toPython(parent), PythonFactory::toPython(child));
+    }else{
+        std::cout << "NO EVNT FOR: " << evtName << parent->getPathName() << std::endl
+                  << child->getPathName() << std::endl;
+    }
+}
+
+void forwardEvent(Node *parent, BaseObject *child, const std::string& evtName){
+    PythonEnvironment::gil acquire;
+
+    py::object self = py::cast(parent);
+    /// Is there a method with this name in the class ?
+    if( py::hasattr(self, evtName.c_str()) )
+    {
+        py::object fct = self.attr(evtName.c_str());
+        /// Call the matching event in the funcVector & pass it the given event
+        fct(PythonFactory::toPython(parent), PythonFactory::toPython(child));
+    }
+}
+
+
+void PrefabMutationListener::onBeginAddChild(Node *parent, Node *child)
+{
+    forwardEvent(parent, child, "onBeginAddChild"); }
+
+void PrefabMutationListener::onEndAddChild(Node *parent, Node *child)
+{
+    forwardEvent(parent, child, "onEndAddChild"); }
+
+void PrefabMutationListener::onEndRemoveChild(Node *parent, Node *child)
+{
+    forwardEvent(parent, child, "onEndRemoveChild"); }
+
+void PrefabMutationListener::onEndAddObject(Node *parent, BaseObject *object)
+{
+    forwardEvent(parent, object, "onEndAddObject"); }
+
+void PrefabMutationListener::onEndRemoveObject(Node *parent, BaseObject *object)
+{
+    forwardEvent(parent, object, "onEndRemoveObject"); }
+
+
 
 class Prefab_Trampoline : public Prefab, public PythonTrampoline
 {
@@ -64,6 +128,8 @@ public:
     }
 
     void doReInit() override ;
+
+    PrefabMutationListener m_mutationListener;
 };
 
 void Prefab_Trampoline::doReInit()
@@ -91,17 +157,16 @@ void moduleAddPrefab(py::module &m) {
 
     f.def(py::init([](py::args& /*args*/, py::kwargs& kwargs){
               auto c = new Prefab_Trampoline();
-
+              c->addListener(&c->m_mutationListener);
               for(auto kv : kwargs)
               {
-
                   std::string key = py::cast<std::string>(kv.first);
                   py::object value = py::reinterpret_borrow<py::object>(kv.second);
 
-                  std::cout << "PREFAB ARE BROKEN " << key << std::endl;
-
                   if( key == "name")
+                  {
                       c->setName(py::cast<std::string>(kv.second));
+                  }
                   try {
                       BindingBase::SetAttr(*c, key, value);
                   } catch (py::attribute_error& /*e*/) {
@@ -110,8 +175,8 @@ void moduleAddPrefab(py::module &m) {
                       /// thus we catch & ignore the py::attribute_error thrown by SetAttr
                   }
               }
+              std::cout << "REGISTER A MUTATION LISTENER FOR PREFAB: " << c->getPathName() << std::endl;
               return c;
-
           }
           ));
 

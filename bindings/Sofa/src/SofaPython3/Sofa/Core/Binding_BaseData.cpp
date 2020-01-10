@@ -40,11 +40,15 @@ using  sofa::core::objectmodel::BaseObject;
 #include <sofa/core/objectmodel/BaseNode.h>
 using  sofa::core::objectmodel::BaseNode;
 
+#include <sofa/core/DataTracker.h>
+using sofa::core::DataTrackerEngine;
+
 #include "Binding_Base.h"
 #include "Binding_BaseData.h"
 #include "Data/Binding_DataContainer.h"
 #include <SofaPython3/DataHelper.h>
 #include <SofaPython3/PythonFactory.h>
+#include <SofaPython3/PythonEnvironment.h>
 #include "Binding_BaseData_doc.h"
 namespace sofapython3
 {
@@ -115,9 +119,50 @@ py::object writeableArray(BaseData* self)
     return py::none();
 }
 
+class DirtyCallback  : public sofa::core::objectmodel::DDGNode
+{
+public:
+    py::object cb;
+    DirtyCallback(py::object o){ cb = o; }
+
+    void update() override {}
+
+    /// Update this value
+    void notifyEndEdit(const sofa::core::ExecParams* params = 0) override
+    {
+        /// Lock the GIL...
+        {
+            PythonEnvironment::gil acquire;
+            cb();
+        }
+        DDGNode::notifyEndEdit(params);
+    }
+
+    sofa::core::objectmodel::BaseData* getData() const override {return nullptr;}
+    sofa::core::objectmodel::Base* getOwner() const override {return nullptr;}
+
+    const std::string& getName() const override  { return ""; }
+};
+
 void __setattr__(py::object self, const std::string& s, py::object value)
 {
     BaseData* selfdata = py::cast<BaseData*>(self);
+    if(s == "onChanged"){
+        static int i=0;
+        i++;
+        selfdata->getOwner()->addUpdateCallback("on"+selfdata->getName(), {selfdata}, [selfdata, value]()
+        {
+            PythonEnvironment::gil acquire;
+            py::object p = value();
+            return sofa::core::objectmodel::ComponentState::Valid;
+        }, {});
+        return;
+    }
+    if(s == "onChange")
+    {
+        selfdata->addOutput(new DirtyCallback(value));
+        return;
+    }
 
     if(py::isinstance<DataContainer>(value))
     {
@@ -147,6 +192,28 @@ py::object __getattr__(py::object self, const std::string& s)
     throw py::attribute_error("There is no attribute '"+s+"'");
 }
 
+py::object connect(BaseData* selfdata, BaseData* target, py::object function)
+{
+    if(target != nullptr)
+    {
+    selfdata->getOwner()->addUpdateCallback("on"+selfdata->getName()+"->"+target->getName(), {selfdata}, [selfdata, function]()
+    {
+        PythonEnvironment::gil acquire;
+        py::object p = function();
+        return sofa::core::objectmodel::ComponentState::Valid;
+    }, {target});
+    }
+    else{
+        selfdata->getOwner()->addUpdateCallback("on"+selfdata->getName()+"->X", {selfdata}, [selfdata, function]()
+        {
+            PythonEnvironment::gil acquire;
+            py::object p = function();
+            return sofa::core::objectmodel::ComponentState::Valid;
+        }, {});
+    }
+    return py::none();
+}
+
 void setParent(BaseData* self, BaseData* parent)
 {
     self->setParent(parent);
@@ -159,7 +226,7 @@ bool hasParent(BaseData *self)
 
 py::str getAsACreateObjectParameter(BaseData *self)
 {
-    return self->getLinkPath();
+    return getLinkPath(*self);
 }
 
 void updateIfDirty(BaseData* self)
@@ -215,6 +282,8 @@ void moduleAddBaseData(py::module& m)
     data.def("setReadOnly", &BaseData::setReadOnly, sofapython3::doc::baseData::setReadOnly);
     data.def("isRequired", &BaseData::isRequired, sofapython3::doc::baseData::isRequired);
     data.def("getValueVoidPtr", &BaseData::getValueVoidPtr, sofapython3::doc::baseData::getValueVoidPtr);
+    data.def("connectX", connect, sofapython3::doc::baseData::connect);
+
 }
 
 } /// namespace sofapython3

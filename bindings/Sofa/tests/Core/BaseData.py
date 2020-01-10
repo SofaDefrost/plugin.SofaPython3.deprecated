@@ -371,10 +371,10 @@ class Test(unittest.TestCase):
         data = root.getData("aField")
         dataParent = root.getData("aFieldParent")
         data.setParent(dataParent)
-        self.assertEqual(data.getLinkPath(), "@.aField")
-        self.assertEqual(dataParent.getLinkPath(),"@.aFieldParent")
-        self.assertEqual(data.getAsACreateObjectParameter(), "@.aFieldParent")
-        self.assertEqual(dataParent.getAsACreateObjectParameter(),"")
+        self.assertEqual(data.getLinkPath(), "@/.aField")
+        self.assertEqual(dataParent.getLinkPath(),"@/.aFieldParent")
+        self.assertEqual(data.getAsACreateObjectParameter(), "@/.aField")
+        self.assertEqual(dataParent.getAsACreateObjectParameter(),"@/.aFieldParent")
 
     def test_read(self):
         root = Sofa.Core.Node("root")

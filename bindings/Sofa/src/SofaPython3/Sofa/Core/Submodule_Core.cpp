@@ -45,14 +45,12 @@ along with sofaqtquick. If not, see <http://www.gnu.org/licenses/>.
 #include "Binding_Simulation.h"
 #include "Binding_BaseLink.h"
 #include "Binding_PythonScriptEvent.h"
+#include "Binding_VisualParams.h"
 
 #include "Data/Binding_DataString.h"
 #include "Data/Binding_DataVectorString.h"
 #include "Data/Binding_DataContainer.h"
-
 #include "Submodule_Core.h"
-
-
 
 namespace sofapython3
 {
@@ -76,6 +74,7 @@ PYBIND11_MODULE(Core, core)
                Sofa.Core.RawPrefab
                Sofa.Core.Object
                Sofa.Core.Camera
+               Sofa.Core.VisualContext
 
            Overridable components
            ^^^^^^^^^^^^^^^^^^^^^^
@@ -117,6 +116,7 @@ PYBIND11_MODULE(Core, core)
     moduleAddController(core);
     moduleAddDataEngine(core);
     moduleAddForceField(core);
+    moduleAddVisualParams(core);
 
     moduleAddNode(core);
     moduleAddNodeIterator(core);

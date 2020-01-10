@@ -31,6 +31,7 @@ along with sofaqtquick. If not, see <http://www.gnu.org/licenses/>.
 #include <sofa/helper/Factory.inl>
 #include <sofa/core/objectmodel/Base.h>
 #include <sofa/core/objectmodel/Event.h>
+#include <sofa/core/visual/VisualParams.h>
 #include <pybind11/pybind11.h>
 #include "config.h"
 
@@ -53,6 +54,7 @@ namespace sofapython3
         static py::object toPython(sofa::core::objectmodel::Base* object);
         static py::object toPython(const sofa::core::objectmodel::BaseData* data);
         static py::object toPython(sofa::core::objectmodel::BaseData* data);
+        static py::object toPython(const sofa::core::visual::VisualParams *params);
         static py::object valueToPython_ro(sofa::core::objectmodel::BaseData* data);
         static void fromPython(sofa::core::objectmodel::BaseData* data, const py::object& value);
         static py::object toPython(sofa::core::objectmodel::Event* event);

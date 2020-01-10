@@ -182,4 +182,11 @@ static auto __getitem__ =
         value can be a node or an object (if object1 is a node), or must be a data (if object1 is an object)
         )";
 
+static auto draw =
+        R"(
+        Called at graph when there is a need to display something
+        )";
+
+
 }
+

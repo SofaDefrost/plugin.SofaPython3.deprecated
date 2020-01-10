@@ -29,6 +29,7 @@ along with sofaqtquick. If not, see <http://www.gnu.org/licenses/>.
 
 #include "Binding_Controller.h"
 #include "Binding_Controller_doc.h"
+#include "Binding_VisualParams.h"
 
 #include <SofaPython3/DataHelper.h>
 #include <SofaPython3/PythonFactory.h>
@@ -46,6 +47,9 @@ namespace sofapython3
     }
 
     void Controller::reinit() {
+    }
+
+    void Controller::draw(const sofa::core::visual::VisualParams* params) {
     }
 
     Controller::Controller() {
@@ -69,6 +73,7 @@ namespace sofapython3
         void init() override ;
         void reinit() override ;
         void handleEvent(Event* event) override ;
+        void draw(const sofa::core::visual::VisualParams *params) override;
 
     private:
         void callScriptMethod(const py::object& self, Event* event,
@@ -85,6 +90,23 @@ namespace sofapython3
     {
         PythonEnvironment::gil acquire;
         PYBIND11_OVERLOAD(void, Controller, reinit, );
+    }
+
+    void Controller_Trampoline::draw(const sofa::core::visual::VisualParams *params)
+    {
+        PythonEnvironment::gil acquire;
+
+        py::object self = py::cast(this);
+        if( py::hasattr(self, "draw") )
+        {
+            py::object o = py::cast(std::make_shared<VisualContext>());
+
+            /// We wrap the VisualContext in a RAII Manager to insure that the exposed context
+            /// get de-activated when we leave this function. s
+            ContextManager context{ py::cast<VisualContext*>(o) };
+            context.m_context->m_currentParams = params;
+            self.attr("draw")(o);
+        }
     }
 
 
@@ -159,6 +181,4 @@ namespace sofapython3
         f.def("init", &Controller::init);
         f.def("reinit", &Controller::reinit);
     }
-
-
 }

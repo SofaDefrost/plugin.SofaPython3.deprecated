@@ -241,6 +241,8 @@ py::object __getitem__(BaseObject &self, std::string s)
     return getItem(self, s);
 }
 
+
+
 void moduleAddBaseObject(py::module& m)
 {
     /// Register the BaseObject binding into the pybind11 typing system
