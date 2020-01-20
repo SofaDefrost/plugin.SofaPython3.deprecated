@@ -234,7 +234,7 @@ py::object addKwargs(Node* self, const py::object& firstArgs, const py::kwargs& 
             throw py::value_error("add: Cannot call function with name " + name + ": Protected keyword");
     }
 
-    auto c = firstArgs(**kwargs);
+    auto c = firstArgs(self, **kwargs);
     Base* base = py::cast<Base*>(c);
     if(base == nullptr)
         throw py::value_error("Missing return type from the callable: "+std::string(py::str(c)));
@@ -255,8 +255,8 @@ py::object addKwargs(Node* self, const py::object& firstArgs, const py::kwargs& 
     }
     if(py::isinstance<Node>(c))
     {
-        Node* basenode = py::cast<Node*>(c);
-        self->addChild(basenode);
+        //Node* basenode = py::cast<Node*>(c);
+        //self->addChild(basenode);
         return c;
     }
     throw py::value_error("Invalid return type from the callable: "+std::string(py::str(c)));
