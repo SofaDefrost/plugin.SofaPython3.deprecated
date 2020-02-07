@@ -436,7 +436,6 @@ py::array getPythonArrayFor(BaseData* d)
     void* ptr = const_cast<void*>(nfo.getValuePtr(d->getValueVoidPtr()));
     if(entry->second.data() != ptr)
     {
-        std::cout << "RESTORE CACHE FOR " << d->getName() << std::endl;
         resetArrayFor(d);
     }
     return memcache[d];
