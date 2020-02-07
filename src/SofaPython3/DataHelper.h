@@ -114,7 +114,7 @@ std::string SOFAPYTHON3_API toSofaParsableString(const py::handle& p);
 
 /// RVO optimized function. Don't care about copy on the return code.
 void SOFAPYTHON3_API fillBaseObjectdescription(sofa::core::objectmodel::BaseObjectDescription& desc,
-                               const py::dict& dict);
+                               const py::dict& dict, py::dict& latevalues);
 
 template<typename T>
 void copyScalar(BaseData* a, const AbstractTypeInfo& nfo, py::array_t<T, py::array::c_style> src)

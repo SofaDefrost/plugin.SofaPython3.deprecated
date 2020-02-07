@@ -54,13 +54,18 @@ std::string toSofaParsableString(const py::handle& p)
     return py::repr(p);
 }
 
-/// RVO optimized function. Don't care about copy on the return code.
 void fillBaseObjectdescription(sofa::core::objectmodel::BaseObjectDescription& desc,
-                               const py::dict& dict)
+                               const py::dict& dict, py::dict& latebinding)
 {
     for(auto kv : dict)
     {
-        desc.setAttribute(py::str(kv.first), toSofaParsableString(kv.second));
+        /// If we are passing a data we make a link
+        if(py::isinstance<BaseData>(kv.second)){
+            latebinding[kv.first] = kv.second;
+        }
+        else{
+            desc.setAttribute(py::str(kv.first), toSofaParsableString(kv.second));
+        }
     }
 }
 

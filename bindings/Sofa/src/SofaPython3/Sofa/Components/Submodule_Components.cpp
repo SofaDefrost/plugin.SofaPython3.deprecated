@@ -77,8 +77,17 @@ PYBIND11_MODULE(Components, m)
         /// Prepare the description to hold the different python attributes as data field's
         /// arguments then create the object.
         BaseObjectDescription desc {s.name.c_str(), s.name.c_str()};
-        fillBaseObjectdescription(desc, kwargs);
+        py::dict latevalues;
+        fillBaseObjectdescription(desc, kwargs, latevalues);
         auto object = ObjectFactory::getInstance()->createObject(node, &desc);
+        for(auto kv : latevalues)
+        {
+            BaseData* d = object->findData(py::cast<std::string>(kv.first));
+            if(d!=nullptr)
+            {
+                d->setParent(py::cast<BaseData*>(kv.second));
+            }
+        }
 
         /// After calling createObject the returned value can be either a nullptr
         /// or non-null but with error message or non-null.

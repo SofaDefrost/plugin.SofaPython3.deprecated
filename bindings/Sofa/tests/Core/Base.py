@@ -69,6 +69,26 @@ class Test(unittest.TestCase):
         self.assertEqual(c1.data4.value, c3.data2.value)
 
 
+    def test_addNewDataFromParent_automaticParenting(self):
+            root = Sofa.Core.Node('root')
+            c1 = root.addObject("MechanicalObject", name="c1")
+            c1.addData("d", value="coucou", type="string")
+
+            c2 = root.addObject("MechanicalObject", name="c2")
+            c2.addData("data1", value=c1.d) # absolute path
+            self.assertEqual(c2.data1.value, c1.d.value)
+
+            n1 = root.addChild("n1")
+            n2 = root.addChild("n2")
+
+            c3 = n1.addObject('MechanicalObject', name='c3')
+            c3.addData("data1", value=c1.d) # relative path (down)
+            self.assertEqual(c3.data1.value, c1.d.value)
+
+            c4 = n2.addObject('MechanicalObject', name='c4')
+            c4.addData('data1', value=c3.data1) # absolute path (chained)
+            self.assertEqual(c4.data1.value, c3.data1.value)
+
     def test_addNewDataFromParent(self):
         root = Sofa.Core.Node('root')
         c1 = root.addObject("MechanicalObject", name="c1")

@@ -165,8 +165,18 @@ py::object addObjectKwargs(Node* self, const std::string& type, const py::kwargs
     /// Prepare the description to hold the different python attributes as data field's
     /// arguments then create the object.
     BaseObjectDescription desc {type.c_str(), type.c_str()};
-    fillBaseObjectdescription(desc, kwargs);
+    py::dict latevalues;
+    fillBaseObjectdescription(desc, kwargs, latevalues);
     auto object = ObjectFactory::getInstance()->createObject(self, &desc);
+
+    for(auto kv : latevalues)
+    {
+        BaseData* d = object->findData(py::cast<std::string>(kv.first));
+        if(d!=nullptr)
+        {
+            d->setParent(py::cast<BaseData*>(kv.second));
+        }
+    }
 
     /// After calling createObject the returned value can be either a nullptr
     /// or non-null but with error message or non-null.
@@ -234,7 +244,7 @@ py::object addKwargs(Node* self, const py::object& firstArgs, const py::kwargs& 
             throw py::value_error("add: Cannot call function with name " + name + ": Protected keyword");
     }
 
-    auto c = firstArgs(self, **kwargs);
+    auto c = firstArgs(**kwargs);
     Base* base = py::cast<Base*>(c);
     if(base == nullptr)
         throw py::value_error("Missing return type from the callable: "+std::string(py::str(c)));
@@ -255,8 +265,8 @@ py::object addKwargs(Node* self, const py::object& firstArgs, const py::kwargs& 
     }
     if(py::isinstance<Node>(c))
     {
-        //Node* basenode = py::cast<Node*>(c);
-        //self->addChild(basenode);
+        Node* basenode = py::cast<Node*>(c);
+        self->addChild(basenode);
         return c;
     }
     throw py::value_error("Invalid return type from the callable: "+std::string(py::str(c)));
@@ -277,8 +287,18 @@ py::object addChildKwargs(Node* self, const std::string& name, const py::kwargs&
     if (sofapython3::isProtectedKeyword(name))
         throw py::value_error("addChild: Cannot call addChild with name " + name + ": Protected keyword");
     BaseObjectDescription desc (name.c_str());
-    fillBaseObjectdescription(desc,kwargs);
+    py::dict latevalues;
+    fillBaseObjectdescription(desc,kwargs, latevalues);
     auto node=simpleapi::createChild(self, desc);
+    for(auto kv : latevalues)
+    {
+        BaseData* d = node->findData(py::cast<std::string>(kv.first));
+        if(d!=nullptr)
+        {
+            d->setParent(py::cast<BaseData*>(kv.second));
+        }
+    }
+
     checkParamUsage(desc);
 
     for(auto a : kwargs)
