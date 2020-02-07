@@ -255,7 +255,6 @@ def PrefabBuilder(f):
                 ## Now we retrieve all params passed to the prefab and add them as datafields:
                 argnames = inspect.getfullargspec(f).args
                 defaults = inspect.getfullargspec(f).defaults
-                print("ICA ")
 
                 if argnames is None:
                     argnames = []
