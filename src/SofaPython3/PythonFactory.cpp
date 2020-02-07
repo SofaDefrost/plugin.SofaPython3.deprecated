@@ -60,10 +60,12 @@ using sofa::core::objectmodel::Event;
 
 #include <sofa/defaulttype/DataTypeInfo.h>
 
+#include <SofaPython3/DataPyObject.h>
+
 namespace sofapython3
 {
 using namespace pybind11::literals;
-
+using sofa::core::objectmodel::DataPyObject;
 static std::map<std::string, componentDowncastingFunction> s_componentDowncastingFct;
 static std::map<std::string, dataDowncastingFunction> s_dataDowncastingFct;
 static std::map<std::string, eventDowncastingFunction> s_eventDowncastingFct;
@@ -289,7 +291,10 @@ void PythonFactory::fromPython(BaseData* d, const py::object& o)
         {
             tmp->setValue(sofa::core::objectmodel::ComponentState::Valid);
         }
-        else
+        else if(auto tmp = dynamic_cast<DataPyObject*>(d))
+        {
+            tmp->setValue(o);
+        }else
         {
             std::stringstream s;
             s<< "binding problem, trying to set value for "

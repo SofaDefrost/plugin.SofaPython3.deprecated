@@ -87,6 +87,7 @@ set(HEADER_FILES
 
     src/SofaPython3/DataCache.h
     src/SofaPython3/DataHelper.h
+    src/SofaPython3/DataPyObject.h
     src/SofaPython3/PythonFactory.h
     src/SofaPython3/Prefab.h
     )
@@ -98,6 +99,7 @@ set(SOURCE_FILES
 
     src/SofaPython3/DataCache.cpp
     src/SofaPython3/DataHelper.cpp
+    src/SofaPython3/DataPyObject.cpp
     src/SofaPython3/PythonFactory.cpp
     src/SofaPython3/Prefab.cpp
 )
