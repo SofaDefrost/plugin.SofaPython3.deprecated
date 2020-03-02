@@ -22,7 +22,6 @@ def createSolver(node, use_iterative_solver):
         node.addObject('CGLinearSolver', name='linearSolver',
                        iterations=30, tolerance=1.e-9, threshold=1.e-9)
     else:
-        SofaRuntime.importPlugin("SofaSparseSolver")
         node.addObject('SparseLDLSolver', name='ldlSolver')
 
 
@@ -42,6 +41,7 @@ def createParticle(node, node_name, use_implicit_scheme, use_iterative_solver):
 
 def rssffScene(use_implicit_scheme=True, use_iterative_solver=True):
     SofaRuntime.importPlugin("SofaAllCommonComponents")
+    SofaRuntime.importPlugin("SofaSparseSolver")
     node = Sofa.Core.Node("root")
     node.gravity = [0, -10, 0]
     createParticle(node, "particle", use_implicit_scheme, use_iterative_solver)

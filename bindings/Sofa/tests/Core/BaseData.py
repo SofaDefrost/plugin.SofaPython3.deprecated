@@ -3,6 +3,7 @@
 import unittest
 import numpy
 import Sofa
+from Sofa.PyTypes import RGBAColor
 
 
 
@@ -74,16 +75,16 @@ class NpArrayTestController(Sofa.Core.Controller):
 
     def testValue(self, test):
         test.assertEqual(str(self.vector_Vec3_1entry.array()),
-                         str(np.array([[1.0, 2.0, 3.0]])))
+                         str(numpy.array([[1.0, 2.0, 3.0]])))
         test.assertEqual(str(self.vector_Vec3_3entries.array()),
-                         str(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]])))
+                         str(numpy.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]])))
 
-        test.assertEqual(str(self.vector_int_1entry.array()), str(np.array([1])))
-        test.assertEqual(str(self.vector_int_3entries.array()), str(np.array([1, 2, 3])))
+        test.assertEqual(str(self.vector_int_1entry.array()), str(numpy.array([1])))
+        test.assertEqual(str(self.vector_int_3entries.array()), str(numpy.array([1, 2, 3])))
 
-        test.assertEqual(str(self.vector_scalar_1entry.array()), str(np.array([1.0])))
+        test.assertEqual(str(self.vector_scalar_1entry.array()), str(numpy.array([1.0])))
         test.assertEqual(str(self.vector_scalar_3entries.array()),
-                         str(np.array([1.0, 2.0, 3.0])))
+                         str(numpy.array([1.0, 2.0, 3.0])))
 
         test.assertEqual(repr(self.vector_text_1entry), repr(["v1"]))
         test.assertEqual(repr(self.vector_text_3entries),
