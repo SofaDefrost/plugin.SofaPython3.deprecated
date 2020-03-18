@@ -103,14 +103,14 @@ void SceneLoaderPY3::getExtensionList(ExtensionList* list)
 sofa::simulation::Node::SPtr SceneLoaderPY3::doLoad(const std::string& filename, const std::vector<std::string>& sceneArgs)
 {
     sofa::simulation::Node::SPtr root = sofa::simulation::Node::create("root");
-    loadSceneWithArguments(filename.c_str(), sceneArgs, root);
+    loadSceneWithArguments(filename.c_str(), root, sceneArgs);
     return root;
 }
 
 
 void SceneLoaderPY3::loadSceneWithArguments(const char *filename,
-                                            const std::vector<std::string>& arguments,
-                                            Node::SPtr root_out)
+                                            Node::SPtr& root_out,
+                                            const std::vector<std::string>& arguments)
 {
     SOFA_UNUSED(arguments);
     PythonEnvironment::gil lock;
@@ -127,6 +127,7 @@ void SceneLoaderPY3::loadSceneWithArguments(const char *filename,
         if(!py::hasattr(module, "createScene"))
         {
             msg_error() << "Missing createScene function";
+            root_out = nullptr;
             return ;
         }
 
@@ -134,6 +135,7 @@ void SceneLoaderPY3::loadSceneWithArguments(const char *filename,
         createScene( py::cast(root_out) );
     }catch(std::exception& e)
     {
+        root_out = nullptr;
         msg_error() << e.what();
     }
 
