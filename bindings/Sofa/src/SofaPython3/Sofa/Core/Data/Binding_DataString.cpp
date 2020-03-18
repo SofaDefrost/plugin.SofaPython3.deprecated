@@ -37,6 +37,9 @@ using  sofa::core::objectmodel::BaseObject;
 #include <sofa/core/objectmodel/BaseNode.h>
 using  sofa::core::objectmodel::BaseNode;
 
+#include <sofa/core/objectmodel/DataFileName.h>
+using  sofa::core::objectmodel::DataFileName;
+
 #include <SofaPython3/DataHelper.h>
 #include <SofaPython3/PythonFactory.h>
 #include "../Binding_Base.h"
@@ -50,9 +53,15 @@ namespace sofapython3
 py::str DataString::__str__()
 {
     std::stringstream s;
-    s << "Sofa.Core.DataString<name='" << getName()
-                        << "', value='" << getValueString()
-                        << "', address='"<< (void*)this <<"'>";
+    // Ugly... but since the BaseData has been reinterpret-cast'ed into a DataString, there's no other way...
+    if (dynamic_cast<DataFileName*>(reinterpret_cast<BaseData*>(this)))
+        s << "Sofa.Core.DataFileName<name='";
+    else
+        s << "Sofa.Core.DataString<name='";
+
+    s << getName()
+          << "', value='" << getValueString()
+          << "', address='"<< (void*)this <<"'>";
     return s.str();
 }
 
