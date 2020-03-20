@@ -115,7 +115,7 @@ void SceneLoaderPY3::loadSceneWithArguments(const char *filename,
     SOFA_UNUSED(arguments);
     PythonEnvironment::gil lock;
 
-    try{
+    try {
         py::module::import("Sofa.Core");
         py::object globals = py::module::import("__main__").attr("__dict__");
         py::module module;
@@ -126,19 +126,17 @@ void SceneLoaderPY3::loadSceneWithArguments(const char *filename,
 
         if(!py::hasattr(module, "createScene"))
         {
-            msg_error() << "Missing createScene function";
-            root_out = nullptr;
+            msg_fatal(root_out.get()) << "Missing createScene function";
             return ;
         }
 
         py::object createScene = module.attr("createScene");
         createScene( py::cast(root_out) );
-    }catch(std::exception& e)
-    {
-        root_out = nullptr;
-        msg_error() << e.what();
+    } catch(std::exception& e) {
+        std::string error = e.what();
+        if (error.find("SyntaxError") != std::string::npos)
+            msg_fatal(root_out.get()) << e.what();
     }
-
 }
 
 } // namespace sofapython3
