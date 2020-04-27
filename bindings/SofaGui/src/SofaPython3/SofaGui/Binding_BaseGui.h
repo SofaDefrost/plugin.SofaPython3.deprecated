@@ -25,17 +25,12 @@ along with sofaqtquick. If not, see <http://www.gnu.org/licenses/>.
     - thierry.gaugry@inria.fr
 ********************************************************************/
 
-#ifndef PYTHONMODULE_SOFA_BINDING_COLOR_H
-#define PYTHONMODULE_SOFA_BINDING_COLOR_H
+#pragma once
 
 #include <pybind11/pybind11.h>
-namespace py = pybind11;
-using namespace pybind11::literals;
 
+namespace sofapython3 {
 
-#include <sofa/defaulttype/Color.h>
-using sofa::defaulttype::RGBAColor;
+void moduleAddBaseGui(pybind11::module& m);
 
-void moduleAddColor(py::module& m);
-
-#endif  // PYTHONMODULE_SOFA_BINDING_COLOR_H
+} /// namespace sofapython3

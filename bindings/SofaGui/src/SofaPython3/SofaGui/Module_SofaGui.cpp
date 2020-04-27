@@ -27,6 +27,7 @@ along with sofaqtquick. If not, see <http://www.gnu.org/licenses/>.
 
 #include <pybind11/pybind11.h>
 
+#include "Binding_BaseGui.h"
 #include "Binding_GUIManager.h"
 
 namespace py = pybind11;
@@ -58,6 +59,7 @@ PYBIND11_MODULE(Gui, m) {
                     :members:
              )doc";
 
+    moduleAddBaseGui(m);
     moduleAddGuiManager(m);
 }
 }

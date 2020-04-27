@@ -32,9 +32,14 @@ import os
 import inspect
 import functools
 import traceback
+import importlib
+
 import Sofa.Helper
 import Sofa.Core
-import importlib
+import Sofa.Simulation
+import Sofa.Types
+import Sofa.Components
+import SofaTypes
 
 __all__=["animation"]
 

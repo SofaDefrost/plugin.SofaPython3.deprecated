@@ -25,9 +25,13 @@ along with sofaqtquick. If not, see <http://www.gnu.org/licenses/>.
     - thierry.gaugry@inria.fr
 ********************************************************************/
 
-#include "Binding_Color.h"
+#pragma once
 
-void moduleAddColor(py::module &m)
-{
+#include <sofa/core/ObjectFactory.h>
+#include <pybind11/pybind11.h>
 
-}
+namespace sofapython3 {
+
+void moduleAddObjectFactory(pybind11::module &m);
+
+} ///sofapython3

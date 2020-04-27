@@ -25,9 +25,23 @@ along with sofaqtquick. If not, see <http://www.gnu.org/licenses/>.
     - thierry.gaugry@inria.fr
 ********************************************************************/
 
-#include "Binding_BoundingBox.h"
+#pragma once
+
+#include <pybind11/pybind11.h>
+
+#include "Binding_Base.h"
+
+#include <sofa/core/objectmodel/BaseContext.h>
+
+template class pybind11::class_<sofa::core::objectmodel::BaseContext,
+                          sofa::core::objectmodel::Base,
+                          sofa::core::sptr<sofa::core::objectmodel::BaseContext>>;
 
 
-void moduleAddBoundingBox(py::module &m)
-{
-}
+namespace sofapython3 {
+
+namespace py { using namespace pybind11; }
+
+void moduleAddBaseContext(py::module &m);
+
+} // namespace sofapython3
