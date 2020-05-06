@@ -46,6 +46,7 @@ namespace sofapython3
     using sofa::core::objectmodel::BaseObject;
     using sofa::core::objectmodel::DDGNode;
 
+
     void PyDataEngine::init() {
         std::cout << "PyDataEngine::init()" << std::endl;
     }
@@ -100,6 +101,30 @@ namespace sofapython3
         throw py::type_error(this->getName() + " has no update() method.");
     }
 
+
+    py::list property_inputs(DataEngine* self)
+    {
+        py::list list;
+        auto fields = self->getDataFields();
+        auto it = std::remove_if(fields.begin(), fields.end(), [&](const auto & data){ return data->getGroup() != "Inputs"; });
+        fields.erase(it, fields.end());
+        for(auto i : fields)
+            list.append(PythonFactory::toPython(i));
+        return list;
+    }
+
+    py::list property_outputs(DataEngine* self)
+    {
+        py::list list;
+        auto fields = self->getDataFields();
+        auto it = std::remove_if(fields.begin(), fields.end(), [&](const auto & data){ return data->getGroup() != "Inputs"; });
+        fields.erase(it, fields.end());
+        for(auto i : fields)
+            list.append(PythonFactory::toPython(i));
+        return list;
+    }
+
+
     void moduleAddDataEngine(pybind11::module &m)
     {
         py::class_<PyDataEngine,
@@ -133,6 +158,8 @@ namespace sofapython3
 
         f.def("addInput", &PyDataEngine::addInput, sofapython3::doc::dataengine::addInput);
         f.def("addOutput", &PyDataEngine::addOutput, sofapython3::doc::dataengine::addOutput);
+        f.def_property_readonly("inputs", &property_inputs);
+        f.def_property_readonly("outputs", &property_outputs);
     }
 
 } /// namespace sofapython3
