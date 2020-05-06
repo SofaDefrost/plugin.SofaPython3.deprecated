@@ -58,4 +58,23 @@ static auto shape =
         with each value being equal to the length of the given dimension)
         )";
 
+static auto resize =
+        R"(Resize data to newSize elements, if relevant.
+
+        But resizing is not always relevant, for example:
+        - nothing happens if FixedSize() is true;
+        - sets can't be resized; they are cleared instead;
+        - nothing happens for vectors containing resizable values (i.e. when
+          BaseType()::FixedSize() is false), because of the 'single index' abstraction;
+
+        Returns true iff the data was resizable
+        )";
+
+static auto append =
+        R"(appends value to data, if possible.
+        The success of this operation depends on wether the container is resizeable
+        (see DataContainer::resize).
+
+        Returns true iff the value was added.
+        )";
 }  // namespace sofapython3::doc::datacontainer

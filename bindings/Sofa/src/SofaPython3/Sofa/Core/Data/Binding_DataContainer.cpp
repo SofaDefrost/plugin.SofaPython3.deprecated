@@ -180,6 +180,37 @@ void moduleAddDataContainer(py::module& m)
         return py::none();
     });
 
+    p.def("resize", [](DataContainer* self, size_t newSize)
+    {
+        auto typeinfo = self->getValueTypeInfo();
+        bool ret = typeinfo->setSize(self->beginEditVoidPtr(), newSize * typeinfo->BaseType()->size());
+        self->endEditVoidPtr();
+        return ret;
+    }, sofapython3::doc::datacontainer::resize);
+
+    p.def("append", [](DataContainer* self, py::object& value)
+    {
+        auto typeinfo = self->getValueTypeInfo();
+        if (typeinfo->setSize(self->beginEditVoidPtr(), typeinfo->size(self->getValueVoidPtr()) + typeinfo->BaseType()->size()))
+        {
+            size_t index = 0;
+            auto nfo = self->getValueTypeInfo();
+            auto itemNfo = nfo->BaseType();
+
+            /// This is a 1D container
+            if( itemNfo->Container() )
+                index = nfo->size(self->getValueVoidPtr()) / itemNfo->size();
+
+            index = nfo->size(self->getValueVoidPtr());
+            self->endEditVoidPtr();
+
+            scoped_writeonly_access access(self);
+            setItem(getPythonArrayFor(self), py::slice(index, index+1, 1), value);
+            return true;
+        }
+        return false;
+    }, sofapython3::doc::datacontainer::append);
+
     p.def("__iadd__", [](DataContainer* self, py::object value)
     {
         /// Acquire an access to the underlying data. As this is a read+write access we
