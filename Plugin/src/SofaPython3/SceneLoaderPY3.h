@@ -77,15 +77,15 @@ public:
     /// load the file
     virtual Node::SPtr doLoad(const std::string& filename, const std::vector<std::string>& sceneArgs=std::vector<std::string>(0)) override;
 
-    void loadSceneWithArguments(const char *filename,
-                                const std::vector<std::string>& arguments=std::vector<std::string>(0),
-                                Node::SPtr root_out = nullptr);
-
     /// get the file type description
     virtual std::string getFileTypeDesc() override;
 
     /// get the list of file extensions
     virtual void getExtensionList(ExtensionList* list) override;
+private:
+    void loadSceneWithArguments(const char *filename,
+                                Node::SPtr& root_out,
+                                const std::vector<std::string>& arguments=std::vector<std::string>(0));
 };
 
 } // namespace sofapython3

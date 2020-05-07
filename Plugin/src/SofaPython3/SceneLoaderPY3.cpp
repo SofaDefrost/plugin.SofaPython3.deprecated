@@ -104,19 +104,19 @@ void SceneLoaderPY3::getExtensionList(ExtensionList* list)
 sofa::simulation::Node::SPtr SceneLoaderPY3::doLoad(const std::string& filename, const std::vector<std::string>& sceneArgs)
 {
     sofa::simulation::Node::SPtr root = sofa::simulation::Node::create("root");
-    loadSceneWithArguments(filename.c_str(), sceneArgs, root);
+    loadSceneWithArguments(filename.c_str(), root, sceneArgs);
     return root;
 }
 
 
 void SceneLoaderPY3::loadSceneWithArguments(const char *filename,
-                                            const std::vector<std::string>& arguments,
-                                            Node::SPtr root_out)
+                                            Node::SPtr& root_out,
+                                            const std::vector<std::string>& arguments)
 {
     SOFA_UNUSED(arguments);
     PythonEnvironment::gil lock;
 
-    try{
+    try {
         py::module::import("Sofa.Core");
         py::object globals = py::module::import("__main__").attr("__dict__");
         py::module module;
@@ -127,17 +127,17 @@ void SceneLoaderPY3::loadSceneWithArguments(const char *filename,
 
         if(!py::hasattr(module, "createScene"))
         {
-            msg_error() << "Missing createScene function";
+            msg_fatal(root_out.get()) << "Missing createScene function";
             return ;
         }
 
         py::object createScene = module.attr("createScene");
-        createScene( PythonFactory::toPython(root_out.get()) );
-    }catch(std::exception& e)
-    {
-        msg_error() << e.what();
+        createScene( py::cast(root_out) );
+    } catch(std::exception& e) {
+        std::string error = e.what();
+        if (error.find("SyntaxError") != std::string::npos)
+            msg_fatal(root_out.get()) << e.what();
     }
-
 }
 
 } // namespace sofapython3
