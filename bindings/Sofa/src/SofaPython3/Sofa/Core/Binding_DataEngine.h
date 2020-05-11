@@ -53,6 +53,8 @@ public:
     PyDataEngine();
     ~PyDataEngine() override;
 
+    py::list inputs();
+    py::list outputs();
 };
 
 void moduleAddDataEngine(pybind11::module &m);
