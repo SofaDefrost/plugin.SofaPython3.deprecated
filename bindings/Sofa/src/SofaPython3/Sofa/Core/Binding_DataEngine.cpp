@@ -94,18 +94,18 @@ namespace sofapython3
             try {
                 fct();
                 return;
-            } catch (std::exception& /*e*/) {
-                throw py::type_error(this->getName() + ": The DataEngine requires an update method with no parameter and no return type");
+            } catch (std::exception& e) {
+                throw py::type_error(this->getName() + ": The DataEngine requires an update method with no parameter and no return type\n" + e.what());
             }
         }
         throw py::type_error(this->getName() + " has no update() method.");
     }
 
 
-    py::list property_inputs(DataEngine* self)
+    py::list PyDataEngine::inputs()
     {
         py::list list;
-        auto fields = self->getDataFields();
+        auto fields = getDataFields();
         auto it = std::remove_if(fields.begin(), fields.end(), [&](const auto & data){ return data->getGroup() != "Inputs"; });
         fields.erase(it, fields.end());
         for(auto i : fields)
@@ -113,10 +113,10 @@ namespace sofapython3
         return list;
     }
 
-    py::list property_outputs(DataEngine* self)
+    py::list PyDataEngine::outputs()
     {
         py::list list;
-        auto fields = self->getDataFields();
+        auto fields = getDataFields();
         auto it = std::remove_if(fields.begin(), fields.end(), [&](const auto & data){ return data->getGroup() != "Inputs"; });
         fields.erase(it, fields.end());
         for(auto i : fields)
@@ -158,8 +158,8 @@ namespace sofapython3
 
         f.def("addInput", &PyDataEngine::addInput, sofapython3::doc::dataengine::addInput);
         f.def("addOutput", &PyDataEngine::addOutput, sofapython3::doc::dataengine::addOutput);
-        f.def_property_readonly("inputs", &property_inputs);
-        f.def_property_readonly("outputs", &property_outputs);
+        f.def("inputs", &PyDataEngine::inputs);
+        f.def("outputs", &PyDataEngine::outputs);
     }
 
 } /// namespace sofapython3
