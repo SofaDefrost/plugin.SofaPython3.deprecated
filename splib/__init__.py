@@ -16,6 +16,7 @@ import Sofa.Core
 import inspect
 import functools
 import inspect
+import numpy as np
 __all__=["animation"]
 
 def pyType2sofaType(v):
@@ -78,63 +79,65 @@ def FunctionToPrefab(f):
             return selfnode
         return SofaPrefabF
 
+
+
 class TypeConversionEngine(Sofa.Core.DataEngine):
     def __init__(self, *args, **kwargs):
-        Sofa.Core.DataEngine(self, *args, **kwargs)
-        self.f = kwargs["lambda"]
-        self.addInput(self.src)
-        self.addData(name="dst", type=kwargs["dataType"])
-        self.addOuptut(self.dst)
-        self.mode = kwargs["mode"]
-
-
-    def aggregateToContainer(self):
-        # reset dest
-        self.dst = np.zeros(shape=self.dst.shape)
-        if self.mode == "append": # guarantee the destination is large enough to accomodate inputs
-            self.dst.resize(len(self.inputs))
-        
-        with self.dst.writeable() as arr:
-            for i in range(0,len(self.inputs)):
-                if self.mode == "append":
-                    arr[i] = self.f(self.inputs[i])
-                elif self.mode == "overwrite":
-                    arr[:] = self.f(self.src)
-                # basic operators are applied on numpy arrays. operations are thus element-wise:
-                elif self.mode == "add":
-                    arr[:] += self.f(self.src)
-                elif self.mode == "subtract":
-                    arr[:] -= self.f(self.src)
-                elif self.mode == "multiply":
-                    arr[:] *= self.f(self.src)
-                elif self.mode == "divide":
-                    arr[:] /= self.f(self.src)
-
-
-    def aggregateToScalar(self):
-        # reset dest
-        self.dst = 0
-        for i in range(0,len(self.inputs)):
-            if self.mode == "overwrite":
-                self.dst = self.f(self.src)
-            elif self.mode == "add":
-                self.dst = self.dst.value + self.f(self.src)
-            elif self.mode == "subtract":
-                self.dst = self.dst.value - self.f(self.src)
-            elif self.mode == "multiply":
-                self.dst = self.dst.value * self.f(self.src)
-            elif self.mode == "divide":
-                self.dst = self.dst.value / self.f(self.src)
-
+        Sofa.Core.DataEngine.__init__(self, *args, **kwargs)
+        print(kwargs.get("dstType"))
+        self.addData(name="dst", type=kwargs.get("dstType"))
+        self.addOutput(self.dst)
+        self.mode = kwargs.get("mode", "append")
 
     def update(self):
         if type(self.dst) is Sofa.Core.DataContainer:
             self.aggregateToContainer()
-        elif type(self.dst.value) is str and type(self.dst) not Sofa.Core.DataString:
+        elif type(self.dst.value) is str and type(self.dst) is not Sofa.Core.DataString:
             # dest types that do not have a proper AbstractTypeInfo implementation
             # (and thus default to strings) cannot handle basic operators (ex: BoundingBox).
             # Therefore, if more than 1 input is passed, we systematically all inputs but the last:
-            self.dst = self.f(self.inputs[-1])
+            self.dst = self.__getattr__(self.inputs()[i].getname() + "_func")(self.inputs()[-1])
         else:
             self.aggregateToScalar()
+
+    def addDataConversion(self, d, f):
+        data = self.addData(name=d.getOwner().getName() + "_" + d.getName(), value=d)
+        self.addInput(data)
+        self.__setattr__(data.getName() + "_func", f)
+
+    def aggregateToContainer(self):
+        # reset dest
+        if self.mode == "append": # guarantee the destination is large enough to accomodate inputs
+            self.dst.resize(len(self.inputs()))
+        self.dst = np.zeros(shape=self.dst.shape)
+        with self.dst.writeable() as arr:
+            for i in range(0,len(self.inputs())):
+                if self.mode == "append":
+                    arr[i] = self.__getattr__(self.inputs()[i].getName() + "_func")(self.inputs()[i])[0]
+                elif self.mode == "overwrite":
+                    arr[:] = self.__getattr__(self.inputs()[i].getName() + "_func")(self.inputs()[i])
+                # basic operators are applied on numpy arrays. operations are thus element-wise:
+                elif self.mode == "add":
+                    arr[:] += self.__getattr__(self.inputs()[i].getName() + "_func")(self.inputs()[i])
+                elif self.mode == "subtract":
+                    arr[:] -= self.__getattr__(self.inputs()[i].getName() + "_func")(self.inputs()[i])
+                elif self.mode == "multiply":
+                    arr[:] *= self.__getattr__(self.inputs()[i].getName() + "_func")(self.inputs()[i])
+                elif self.mode == "divide":
+                    arr[:] /= self.__getattr__(self.inputs()[i].getName() + "_func")(self.inputs()[i])
+
+    def aggregateToScalar(self):
+        # reset dest
+        self.dst = 0
+        for i in range(0,len(self.inputs())):
+            if self.mode == "overwrite":
+                self.dst = self.__getattr__(self.inputs()[i].getName() + "_func")(self.inputs()[i])
+            elif self.mode == "add":
+                self.dst = self.dst.value + self.__getattr__(self.inputs()[i].getName() + "_func")(self.inputs()[i])
+            elif self.mode == "subtract":
+                self.dst = self.dst.value - self.__getattr__(self.inputs()[i].getName() + "_func")(self.inputs()[i])
+            elif self.mode == "multiply":
+                self.dst = self.dst.value * self.__getattr__(self.inputs()[i].getName() + "_func")(self.inputs()[i])
+            elif self.mode == "divide":
+                self.dst = self.dst.value / self.__getattr__(self.inputs()[i].getName() + "_func")(self.inputs()[i])
 
