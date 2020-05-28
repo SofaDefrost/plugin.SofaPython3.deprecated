@@ -54,6 +54,7 @@ using sofapython3::PythonFactory;
 
 #include "Binding_Node.h"
 #include "Binding_NodeIterator.h"
+#include "Binding_Context.h"
 
 using sofa::core::objectmodel::BaseObjectDescription;
 
@@ -432,6 +433,15 @@ py::object getMechanicalMapping(Node *self)
     return py::none();
 }
 
+py::object getRoot(Node* self)
+{
+    auto root = self->getRoot();
+    if (root) {
+        return PythonFactory::toPython(root);
+    }
+    return py::none();
+}
+
 void sendEvent(Node* self, py::object pyUserData, char* eventName)
 {
     sofapython3::PythonScriptEvent event(self, eventName, pyUserData);
@@ -444,14 +454,6 @@ void moduleAddNode(py::module &m) {
     py::class_<sofa::core::objectmodel::BaseNode,
             sofa::core::objectmodel::Base,
             sofa::core::objectmodel::BaseNode::SPtr>(m, "BaseNode");
-
-    py::class_<sofa::core::objectmodel::BaseContext,
-            sofa::core::objectmodel::Base,
-            sofa::core::objectmodel::BaseContext::SPtr>(m, "BaseContext");
-
-    py::class_<sofa::core::objectmodel::Context,
-            sofa::core::objectmodel::BaseContext,
-            sofa::core::objectmodel::Context::SPtr>(m,"Context");
 
     py::class_<Node, sofa::core::objectmodel::BaseNode,
             sofa::core::objectmodel::Context, Node::SPtr>
@@ -476,7 +478,7 @@ void moduleAddNode(py::module &m) {
     p.def("getChild", &getChild, sofapython3::doc::sofa::core::Node::getChild);
     p.def("removeChild", &removeChild, sofapython3::doc::sofa::core::Node::removeChild);
     p.def("removeChild", &removeChildByName, sofapython3::doc::sofa::core::Node::removeChildWithName);
-    p.def("getRoot", &Node::getRoot, sofapython3::doc::sofa::core::Node::getRoot);
+    p.def("getRoot", &getRoot, sofapython3::doc::sofa::core::Node::getRoot);
     p.def("getPathName", &Node::getPathName, sofapython3::doc::sofa::core::Node::getPathName);
     p.def("getLinkPath", &getLinkPath, sofapython3::doc::sofa::core::Node::getLinkPath);
     p.def_property_readonly("children", &property_children, sofapython3::doc::sofa::core::Node::children);

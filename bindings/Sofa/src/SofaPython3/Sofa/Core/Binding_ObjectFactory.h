@@ -25,17 +25,13 @@ along with sofaqtquick. If not, see <http://www.gnu.org/licenses/>.
     - thierry.gaugry@inria.fr
 ********************************************************************/
 
-#ifndef PYTHONMODULE_SOFA_BINDING_FRAME_H
-#define PYTHONMODULE_SOFA_BINDING_FRAME_H
+#pragma once
 
+#include <sofa/core/ObjectFactory.h>
 #include <pybind11/pybind11.h>
-namespace py = pybind11;
-using namespace pybind11::literals;
 
+namespace sofapython3 {
 
-#include <sofa/defaulttype/Frame.h>
-using sofa::defaulttype::Frame;
+void moduleAddObjectFactory(pybind11::module &m);
 
-void moduleAddFrame(py::module& m);
-
-#endif  // PYTHONMODULE_SOFA_BINDING_FRAME_H
+} ///sofapython3

@@ -141,8 +141,6 @@ class Test(unittest.TestCase):
             object2 = node2.addObject("MechanicalObject", name="object2")
 
             # All those are allowed syntaxes:
-            self.assertEqual(root[""].name, root.name)
-            self.assertEqual(root["."].name, root.name)
             self.assertEqual(root[".name"], root.name)
             self.assertEqual(root["name"], root.name)
 
@@ -158,6 +156,12 @@ class Test(unittest.TestCase):
             self.assertEqual(root["node1.node2.object2.name"], object2.name)
 
             self.assertEqual(root["node1.node2.object2.name"], root.node1.node2.object2.name)
+
+	def test_getRoot(self):
+            root = Sofa.Core.Node("root")
+            node = root.addChild("node")
+            self.assertEqual(node.getRoot(), root)
+
         def test_getRootPath(self):
             root = Sofa.Core.Node("root")
             node = root.addChild("node")

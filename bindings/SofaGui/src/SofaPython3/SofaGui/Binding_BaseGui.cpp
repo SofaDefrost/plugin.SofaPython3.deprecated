@@ -25,17 +25,31 @@ along with sofaqtquick. If not, see <http://www.gnu.org/licenses/>.
     - thierry.gaugry@inria.fr
 ********************************************************************/
 
-#ifndef PYTHONMODULE_SOFA_BINDING_COLOR_H
-#define PYTHONMODULE_SOFA_BINDING_COLOR_H
+#include "Binding_BaseGui.h"
 
-#include <pybind11/pybind11.h>
+#include <sofa/gui/BaseGUI.h>
+
 namespace py = pybind11;
-using namespace pybind11::literals;
 
+namespace sofapython3 {
+using sofa::gui::BaseGUI;
+using sofa::simulation::Node;
 
-#include <sofa/defaulttype/Color.h>
-using sofa::defaulttype::RGBAColor;
+void moduleAddBaseGui(py::module& m)
+{
+    py::class_<sofa::gui::BaseGUI, std::unique_ptr<sofa::gui::BaseGUI, py::nodelete>> baseGUI(m, "BaseGUI");
 
-void moduleAddColor(py::module& m);
+    /*
+     * Sofa.Gui.BaseGUI.SetBackgroundImage
+     */
+    const auto SetBackgroundImageDoc = R"doc(
+        Set the background image of the current GUI viewer with the given filepath.
 
-#endif  // PYTHONMODULE_SOFA_BINDING_COLOR_H
+        :param filename: Path to the image which will become the background of the viewer.
+        :type filename: str
+    )doc";
+    baseGUI.def("setBackgroundImage", &sofa::gui::BaseGUI::setBackgroundImage, SetBackgroundImageDoc);
+
+}
+
+} // namespace sofapython3

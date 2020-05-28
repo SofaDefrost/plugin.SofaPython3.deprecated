@@ -30,8 +30,6 @@ along with sofaqtquick. If not, see <http://www.gnu.org/licenses/>.
 
 #include <pybind11/numpy.h>
 
-#include <sofa/core/topology/Topology.h>
-
 #include <sofa/core/objectmodel/BaseData.h>
 using sofa::core::objectmodel::BaseData;
 
@@ -116,12 +114,6 @@ bool BindingBase::SetData(BaseData* d, py::object value)
 
     const AbstractTypeInfo& nfo{ *(d->getValueTypeInfo()) };
 
-    /// We go for the container path.
-    if(nfo.Container())
-    {
-        PythonFactory::fromPython(d,value);
-        return true;
-    }
     PythonFactory::fromPython(d, value);
     return true;
 }

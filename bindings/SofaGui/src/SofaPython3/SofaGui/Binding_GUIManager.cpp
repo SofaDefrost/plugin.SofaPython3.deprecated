@@ -29,10 +29,9 @@ along with sofaqtquick. If not, see <http://www.gnu.org/licenses/>.
 
 #include "Binding_GUIManager.h"
 #include <sofa/gui/GUIManager.h>
+#include <sofa/gui/BaseGUI.h>
 
 namespace py = pybind11;
-
-PYBIND11_MAKE_OPAQUE(std::vector<std::string>);
 
 namespace sofapython3 {
 
@@ -172,6 +171,14 @@ void moduleAddGuiManager(py::module& m)
         :type filename: str
     )doc";
     guiManager.def_static("SaveScreenshot", &sofa::gui::GUIManager::SaveScreenshot, SaveScreenshotDoc);
+
+    /*
+     * Sofa.Gui.GUIManager.GetGUI
+     */
+    const auto GetGUIDoc = R"doc(
+        Get the current GUI.
+    )doc";
+    guiManager.def_static("GetGUI", &sofa::gui::GUIManager::getGUI, GetGUIDoc);
 }
 
 } /// namespace sofapython3

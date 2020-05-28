@@ -27,18 +27,10 @@ along with sofaqtquick. If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <SofaPython3/Sofa/Core/Binding_BaseObject.h>
+#include <pybind11/pybind11.h>
 
-#include <sofa/simulation/Simulation.h>
-using sofa::simulation::Simulation;
+namespace sofapython3 {
 
-template class pybind11::class_<Simulation, Simulation::SPtr>;
+void moduleAddBaseGui(pybind11::module& m);
 
-namespace sofapython3
-{
-
-//void moduleAddSimulation(py::module &m);
-void moduleAddSimulation(py::module &m);
-
-} ///sofapython3
-
+} /// namespace sofapython3
