@@ -43,7 +43,7 @@ PYBIND11_MODULE(Types, types)
 
        )doc";
 
-    moduleAddBoundingBox(types);
+//    moduleAddBoundingBox(types);
 }
 
 }  // namespace sofapython3

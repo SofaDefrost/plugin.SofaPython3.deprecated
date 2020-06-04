@@ -46,6 +46,7 @@ namespace sofapython3
     using sofa::core::objectmodel::BaseObject;
     using sofa::core::objectmodel::DDGNode;
 
+
     void PyDataEngine::init() {
         std::cout << "PyDataEngine::init()" << std::endl;
     }
@@ -93,12 +94,36 @@ namespace sofapython3
             try {
                 fct();
                 return;
-            } catch (std::exception& /*e*/) {
-                throw py::type_error(this->getName() + ": The DataEngine requires an update method with no parameter and no return type");
+            } catch (std::exception& e) {
+                throw py::type_error(this->getName() + ": The DataEngine requires an update method with no parameter and no return type\n" + e.what());
             }
         }
         throw py::type_error(this->getName() + " has no update() method.");
     }
+
+
+    py::list PyDataEngine::inputs()
+    {
+        py::list list;
+        auto fields = getDataFields();
+        auto it = std::remove_if(fields.begin(), fields.end(), [&](const auto & data){ return data->getGroup() != "Inputs"; });
+        fields.erase(it, fields.end());
+        for(auto i : fields)
+            list.append(PythonFactory::toPython(i));
+        return list;
+    }
+
+    py::list PyDataEngine::outputs()
+    {
+        py::list list;
+        auto fields = getDataFields();
+        auto it = std::remove_if(fields.begin(), fields.end(), [&](const auto & data){ return data->getGroup() != "Inputs"; });
+        fields.erase(it, fields.end());
+        for(auto i : fields)
+            list.append(PythonFactory::toPython(i));
+        return list;
+    }
+
 
     void moduleAddDataEngine(pybind11::module &m)
     {
@@ -133,6 +158,8 @@ namespace sofapython3
 
         f.def("addInput", &PyDataEngine::addInput, sofapython3::doc::dataengine::addInput);
         f.def("addOutput", &PyDataEngine::addOutput, sofapython3::doc::dataengine::addOutput);
+        f.def("inputs", &PyDataEngine::inputs);
+        f.def("outputs", &PyDataEngine::outputs);
     }
 
 } /// namespace sofapython3

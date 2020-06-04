@@ -52,6 +52,8 @@ public:
 
     PyDataEngine();
     ~PyDataEngine() override;
+    py::list inputs();
+    py::list outputs();
 
 };
 

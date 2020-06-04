@@ -10,6 +10,11 @@ set(PYTHON_FILES
 
 find_package(SofaGTestMain REQUIRED)
 
+if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+    # Sized deallocaion is not enabled by default under clang after c++14
+    set(CMAKE_CXX_FLAGS "-fsized-deallocation")
+endif ()
+
 add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${PYTHON_FILES})
 target_link_libraries(${PROJECT_NAME} SofaGTestMain SofaPython3::Plugin SofaPython3::Bindings.Sofa.Core)
 target_compile_definitions(${PROJECT_NAME} PRIVATE "PYTHON_TESTFILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"")

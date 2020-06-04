@@ -1,5 +1,24 @@
 project(Bindings.Sofa.Tests)
 
+####################################################################################################
+### Module dependencies
+####################################################################################################
+if (NOT TARGET SofaPython3)
+  find_package(SofaPython3 QUIET)
+  if(NOT SofaPython3_FOUND)
+    message("-- PythonModule_Sofa_test is disabled because 'SofaPython3' is missing or not activated.")
+    return()
+  endif()
+endif()
+
+message("-- PythonModule_Sofa_test is enabled.")
+
+set(CMAKE_CXX_STANDARD 17)
+set(PYBIND11_CPP_STANDARD -std=c++17)
+
+####################################################################################################
+### Building
+####################################################################################################
 set(HEADER_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/Binding_BaseObject_MockComponent.h
 )

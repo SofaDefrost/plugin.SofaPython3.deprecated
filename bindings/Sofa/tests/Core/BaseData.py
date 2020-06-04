@@ -408,3 +408,24 @@ class Test(unittest.TestCase):
         self.assertFalse(data.isReadOnly())
         data.setReadOnly(True)
         self.assertTrue(data.isReadOnly())
+
+    def test_DataContainer_resize(self):
+        root = Sofa.Core.Node('root')
+        mo = root.addObject("MechanicalObject", name="mo", position=[[1,2,3], [4,5,6]])
+        mo.position.resize(3);
+        self.assertEqual(len(mo.position), 3)
+        self.assertEqual(mo.position.size, 3*3)
+
+    def test_DataContainer_setitem(self):
+        root = Sofa.Core.Node('root')
+        mo = root.addObject("MechanicalObject", name="mo", position=[[1,2,3], [4,5,6]])
+        mo.position[0] = [3,2,1]
+        self.assertEqual(mo.position.toList(), [[3,2,1],[4,5,6]])
+        mo.position[0,1] = 42
+        self.assertEqual(mo.position.toList(), [[1,42,3],[4,5,6]])
+
+    def test_DataContainer_append(self):
+        root = Sofa.Core.Node('root')
+        mo = root.addObject("MechanicalObject", name="mo", position=[[1,2,3], [4,5,6]])
+        mo.position.append([7,8,9])
+        self.assertEqual(mo.position.toList(), [[1,2,3],[4,5,6],[7,8,9]])

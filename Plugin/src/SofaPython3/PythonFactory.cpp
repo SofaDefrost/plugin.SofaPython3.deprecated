@@ -450,6 +450,8 @@ bool PythonFactory::registerDefaultTypes()
     PythonFactory::registerType<sofa::defaulttype::Vec4f>("Vec4f");
     PythonFactory::registerType<sofa::defaulttype::Vec6f>("Vec6f");
 
+    PythonFactory::registerType<sofa::defaulttype::BoundingBox>("BoundingBox");
+
     // Matrices
     PythonFactory::registerType<sofa::defaulttype::Mat2x2d>("Mat2x2d");
     PythonFactory::registerType<sofa::defaulttype::Mat3x3d>("Mat3x3d");
