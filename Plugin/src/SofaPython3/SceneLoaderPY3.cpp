@@ -132,10 +132,11 @@ void SceneLoaderPY3::loadSceneWithArguments(const char *filename,
         }
 
         py::object createScene = module.attr("createScene");
-        createScene( PythonFactory::toPython(root_out.get()) );
-    }catch(std::exception& e)
-    {
-        msg_error() << e.what();
+        createScene( py::cast(root_out) );
+    } catch(std::exception& e) {
+        std::string error = e.what();
+        if (error.find("SyntaxError") != std::string::npos)
+            msg_fatal(root_out.get()) << e.what();
     }
 }
 
